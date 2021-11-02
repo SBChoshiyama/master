@@ -24,6 +24,8 @@ namespace MRTK_HKSample
         GameObject MeasuingToolSelectorObj;
         MeasuringToolSelector measuringToolSelector;
 
+        float rocal = 0.5F;
+
         void Start()
         {
             handJointService = CoreServices.GetInputSystemDataProvider<IMixedRealityHandJointService>();
@@ -88,7 +90,13 @@ namespace MRTK_HKSample
             // パブリック変数に保存
             measuringToolSelector.LineDistance = distance;
 
-            DistanceText.text = distance.ToString("0.0") + " cm";
+            rocal -= Time.deltaTime;
+            if (rocal <= 0)
+            {
+                DistanceText.text = distance.ToString("0.0") + " cm";
+                rocal = 0.5F;
+            }
+
             DistanceText.transform.position = (leftIndexTip.position + rightIndexTip.position) / 2;
         }
     }

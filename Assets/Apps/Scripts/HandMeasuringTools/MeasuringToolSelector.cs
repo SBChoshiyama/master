@@ -50,8 +50,7 @@ namespace HKT
         private void Initialise()
         {
             // 片手モードで起動
-            //UseOneHandRuler();
-            UseHandProtractor();
+            UseOneHandRuler();
         }
 
         /// <summary>

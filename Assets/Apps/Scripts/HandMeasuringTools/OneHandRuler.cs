@@ -29,6 +29,10 @@ namespace MRTK_HKSample
         GameObject MeasuingToolSelectorObj;
         MeasuringToolSelector measuringToolSelector;
 
+        float leftrocal = 0.5F;
+        float rightrocal = 0.5F;
+
+
         void Start()
         {
             handJointService = CoreServices.GetInputSystemDataProvider<IMixedRealityHandJointService>();
@@ -83,6 +87,8 @@ namespace MRTK_HKSample
                 return;
             }
 
+            var distanceTime = Time.deltaTime;
+
             // 線を描画
             leftLine.SetPosition(0, leftIndexTip.position);
             leftLine.SetPosition(1, leftThumbTip.position);
@@ -94,6 +100,14 @@ namespace MRTK_HKSample
 
             // cmに変換
             leftDistance = leftDistance * 100;
+
+            leftrocal -= distanceTime;
+            if (leftrocal <= 0)
+            {
+                leftDistanceText.text = leftDistance.ToString("0.0") + " cm";
+                leftrocal = 0.5F;
+            }
+
             leftDistanceText.text = leftDistance.ToString("0.0") + " cm";
             leftDistanceText.transform.position = (leftIndexTip.position + leftThumbTip.position) / 2;
 
@@ -128,7 +142,13 @@ namespace MRTK_HKSample
             // パブリック変数に保存
             measuringToolSelector.LineDistance = rightDistance;
 
-            rightDistanceText.text = rightDistance.ToString("0.0") + " cm";
+            rightrocal -= distanceTime;
+            if (rightrocal <= 0)
+            {
+                rightDistanceText.text = rightDistance.ToString("0.0") + " cm";
+                rightrocal = 0.5F;
+            }
+
             rightDistanceText.transform.position = (rightIndexTip.position + rightThumbTip.position) / 2;
 
         }
