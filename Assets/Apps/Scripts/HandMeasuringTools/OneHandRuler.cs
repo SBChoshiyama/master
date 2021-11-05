@@ -11,19 +11,38 @@ namespace MRTK_HKSample
     /// </summary>
     public class OneHandRuler : MonoBehaviour
     {
+        /// <summary>
+        /// 左手の長さ表示テキスト
+        /// </summary>
         [SerializeField]
         private TextMesh leftDistanceText = default;
 
+        /// <summary>
+        /// 右手の長さ表示テキスト
+        /// </summary>
         [SerializeField]
         private TextMesh rightDistanceText = default;
 
+        /// <summary>
+        /// 左手用の線オブジェクト
+        /// </summary>
         [SerializeField]
         private LineRenderer leftLine = default;
 
+        /// <summary>
+        /// 右手用の線オブジェクト
+        /// </summary>
         [SerializeField]
         private LineRenderer rightLine = default;
 
+        /// <summary>
+        /// HandJointServiceインスタンス
+        /// </summary>
         private IMixedRealityHandJointService handJointService = null;
+
+        /// <summary>
+        /// DataProviderAccessインスタンス
+        /// </summary>
         private IMixedRealityDataProviderAccess dataProviderAccess = null;
 
         /// <summary>
@@ -46,7 +65,14 @@ namespace MRTK_HKSample
         /// </summary>
         private StemModeSelector stemModeSelector;
 
+        /// <summary>
+        /// 左手用の長さの測定間隔
+        /// </summary>
         private float leftrocal = 0.5F;
+
+        /// <summary>
+        /// 右手用の長さの測定間隔
+        /// </summary>
         private float rightrocal = 0.5F;
 
         private void Start()

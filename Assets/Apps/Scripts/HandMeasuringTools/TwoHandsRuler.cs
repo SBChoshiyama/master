@@ -12,19 +12,52 @@ namespace MRTK_HKSample
     /// </summary>
     public class TwoHandsRuler : MonoBehaviour
     {
+        /// <summary>
+        /// 長さ表示テキスト
+        /// </summary>
         [SerializeField]
         private TextMesh DistanceText = default;
 
+        /// <summary>
+        /// 線のオブジェクト
+        /// </summary>
         [SerializeField]
         private LineRenderer line = default;
 
+        /// <summary>
+        /// HandJointServiceインスタンス
+        /// </summary>
         private IMixedRealityHandJointService handJointService = null;
+
+        /// <summary>
+        /// DataProviderAccessインスタンス
+        /// </summary>
         private IMixedRealityDataProviderAccess dataProviderAccess = null;
 
-        GameObject MeasuingToolSelectorObj;
-        MeasuringToolSelector measuringToolSelector;
+        /// <summary>
+        /// 測定モード選択用GameObject
+        /// </summary>
+        private GameObject MeasuingToolSelectorObj;
 
-        float rocal = 0.5F;
+        /// <summary>
+        /// 測定モード選択用スクリプトObject
+        /// </summary>
+        private MeasuringToolSelector measuringToolSelector;
+
+        /// <summary>
+        /// 茎モード選択用GameObject
+        /// </summary>
+        private GameObject StemModeSelectorObj;
+
+        /// <summary>
+        /// 茎モード選択用スクリプトObject
+        /// </summary>
+        private StemModeSelector stemModeSelector;
+
+        /// <summary>
+        /// 長さの測定間隔
+        /// </summary>
+        float RocalTime = 0.5F;
 
         void Start()
         {
@@ -47,6 +80,9 @@ namespace MRTK_HKSample
 
             MeasuingToolSelectorObj = GameObject.Find("MeasuringToolSelector");
             measuringToolSelector = MeasuingToolSelectorObj.GetComponent<MeasuringToolSelector>();
+
+            StemModeSelectorObj = GameObject.Find("StemModeSelector");
+            stemModeSelector = StemModeSelectorObj.GetComponent<StemModeSelector>();
 
             Initialize();
         }
@@ -88,13 +124,26 @@ namespace MRTK_HKSample
             distance = distance * 100;
 
             // パブリック変数に保存
-            measuringToolSelector.LineDistance = distance;
+            switch (stemModeSelector.InnerStemMode)
+            {
+                // 茎長モード
+                // 茎径モード
+                case StemModeSelector.StemMode.Length:
+                case StemModeSelector.StemMode.Diameter:
+                    measuringToolSelector.LineDistance = distance;
+                    break;
 
-            rocal -= Time.deltaTime;
-            if (rocal <= 0)
+                // 1辺での茎径モード
+                case StemModeSelector.StemMode.SingleDiameter:
+                    measuringToolSelector.LineDistance = (float)(distance * 3.14);
+                    break;
+            }
+
+            RocalTime -= Time.deltaTime;
+            if (RocalTime <= 0)
             {
                 DistanceText.text = distance.ToString("0.0") + " cm";
-                rocal = 0.5F;
+                RocalTime = 0.5F;
             }
 
             DistanceText.transform.position = (leftIndexTip.position + rightIndexTip.position) / 2;

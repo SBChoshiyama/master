@@ -40,6 +40,9 @@ public class VoiceCommand : MonoBehaviour
     {
     }
 
+    /// <summary>
+    /// Saveコマンド実施処理
+    /// </summary>
     public void SaveCommandEvent()
     {
         var dis = measuringToolSelector.LineDistance;
@@ -57,13 +60,25 @@ public class VoiceCommand : MonoBehaviour
     }
 
     /// <summary>
+    /// Clearコマンド実施処理
+    /// </summary>
+    public void ClearCommandEvent()
+    {
+        Debug.Log("ClearEvent");
+
+        // 初期化処理実施
+        IsOneSelectDiameter = false;
+        DistanceText.text = "No Distance";
+    }
+
+    /// <summary>
     /// 計測結果表示処理
     /// </summary>
     /// <param name="dis">表示する計測結果</param>
     private void ShowDistanceText(float dis)
     {
         Debug.Log($"距離 = {dis}cm");
-        DistanceText.text = dis.ToString("0.0") + " cm";
+        DistanceText.text = "距離 = " + dis.ToString("0.0") + " cm";
     }
 
     /// <summary>
