@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,7 +6,7 @@ public class SavingToolSelector : MonoBehaviour
     /// <summary>
     /// Saveモード
     /// </summary>
-    public enum SavingTools 
+    public enum SavingTools
     {
         /// <summary>
         /// タイマー
@@ -29,7 +28,7 @@ public class SavingToolSelector : MonoBehaviour
     private List<GameObject> tools = new List<GameObject>();
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         Initialise();
     }
@@ -78,5 +77,4 @@ public class SavingToolSelector : MonoBehaviour
         }
         //tools[(int)SavingTools.EyeTracking].SetActive(true);
     }
-
 }

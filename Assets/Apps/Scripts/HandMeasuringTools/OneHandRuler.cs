@@ -26,14 +26,30 @@ namespace MRTK_HKSample
         private IMixedRealityHandJointService handJointService = null;
         private IMixedRealityDataProviderAccess dataProviderAccess = null;
 
-        GameObject MeasuingToolSelectorObj;
-        MeasuringToolSelector measuringToolSelector;
+        /// <summary>
+        /// 測定モード選択用GameObject
+        /// </summary>
+        private GameObject MeasuingToolSelectorObj;
 
-        float leftrocal = 0.5F;
-        float rightrocal = 0.5F;
+        /// <summary>
+        /// 測定モード選択用スクリプトObject
+        /// </summary>
+        private MeasuringToolSelector measuringToolSelector;
 
+        /// <summary>
+        /// 茎モード選択用GameObject
+        /// </summary>
+        private GameObject StemModeSelectorObj;
 
-        void Start()
+        /// <summary>
+        /// 茎モード選択用スクリプトObject
+        /// </summary>
+        private StemModeSelector stemModeSelector;
+
+        private float leftrocal = 0.5F;
+        private float rightrocal = 0.5F;
+
+        private void Start()
         {
             handJointService = CoreServices.GetInputSystemDataProvider<IMixedRealityHandJointService>();
             if (handJointService == null)
@@ -55,6 +71,9 @@ namespace MRTK_HKSample
             MeasuingToolSelectorObj = GameObject.Find("MeasuringToolSelector");
             measuringToolSelector = MeasuingToolSelectorObj.GetComponent<MeasuringToolSelector>();
 
+            StemModeSelectorObj = GameObject.Find("StemModeSelector");
+            stemModeSelector = StemModeSelectorObj.GetComponent<StemModeSelector>();
+
             Initialize();
         }
 
@@ -69,7 +88,7 @@ namespace MRTK_HKSample
             rightDistanceText.text = "0 cm";
         }
 
-        void Update()
+        private void Update()
         {
             // 左手 人差し指
             var leftIndexTip = handJointService.RequestJointTransform(TrackedHandJoint.IndexTip, Handedness.Left);
@@ -140,7 +159,20 @@ namespace MRTK_HKSample
             rightDistance = rightDistance * 100;
 
             // パブリック変数に保存
-            measuringToolSelector.LineDistance = rightDistance;
+            switch (stemModeSelector.InnerStemMode)
+            {
+                // 茎長モード
+                // 茎径モード
+                case StemModeSelector.StemMode.Length:
+                case StemModeSelector.StemMode.Diameter:
+                    measuringToolSelector.LineDistance = rightDistance;
+                    break;
+
+                // 1辺での茎径モード
+                case StemModeSelector.StemMode.SingleDiameter:
+                    measuringToolSelector.LineDistance = (float)(rightDistance * 3.14);
+                    break;
+            }
 
             rightrocal -= distanceTime;
             if (rightrocal <= 0)
@@ -150,7 +182,6 @@ namespace MRTK_HKSample
             }
 
             rightDistanceText.transform.position = (rightIndexTip.position + rightThumbTip.position) / 2;
-
         }
     }
 }

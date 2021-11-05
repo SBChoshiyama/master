@@ -39,7 +39,7 @@ namespace HKT
         private List<GameObject> tools = new List<GameObject>();
 
         // Start is called before the first frame update
-        void Start()
+        private void Start()
         {
             Initialise();
         }
@@ -62,7 +62,7 @@ namespace HKT
             {
                 tool.SetActive(false);
             }
-            tools[(int) MeasuringTool.OneHandRuler].SetActive(true);
+            tools[(int)MeasuringTool.OneHandRuler].SetActive(true);
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace HKT
             {
                 tool.SetActive(false);
             }
-            tools[(int) MeasuringTool.TwoHandsRuler].SetActive(true);
+            tools[(int)MeasuringTool.TwoHandsRuler].SetActive(true);
         }
 
         /// <summary>
@@ -86,7 +86,7 @@ namespace HKT
             {
                 tool.SetActive(false);
             }
-            tools[(int) MeasuringTool.TwoHandsRulerThumbTip].SetActive(true);
+            tools[(int)MeasuringTool.TwoHandsRulerThumbTip].SetActive(true);
         }
     }
 }
