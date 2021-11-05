@@ -77,8 +77,16 @@ public class VoiceCommand : MonoBehaviour
     /// <param name="dis">•\Ž¦‚·‚éŒv‘ªŒ‹‰Ê</param>
     private void ShowDistanceText(float dis)
     {
-        Debug.Log($"‹——£ = {dis}cm");
-        DistanceText.text = "‹——£ = " + dis.ToString("0.0") + " cm";
+        if(stemModeSelector.InnerStemMode == StemModeSelector.StemMode.Length)
+        {
+            Debug.Log($"Œs’·‚Ì’·‚³ = {dis}cm");
+            DistanceText.text = "Œs’·‚Ì’·‚³ = " + dis.ToString("0.0") + " cm";
+        }
+        else
+        {
+            Debug.Log($"ŒsŒa‚Ì‰~Žü = {dis}cm");
+            DistanceText.text = "ŒsŒa‚Ì‰~Žü = " + dis.ToString("0.0") + " cm";
+        }
     }
 
     /// <summary>

@@ -56,7 +56,7 @@ public class TimerButton : MonoBehaviour
     private void LineDistance()
     {
         var dis = measuringToolSelector.LineDistance;
-        Debug.Log($"‹——£ = {dis}cm");
-        DistanceText.text = dis.ToString("0.0") + " cm";
+        Debug.Log($"Œs’·‚Ì’·‚³ =  {dis}cm");
+        DistanceText.text = "Œs’·‚Ì’·‚³ = " + dis.ToString("0.0") + " cm";
     }
 }
