@@ -38,8 +38,8 @@ public class SavingToolSelector : MonoBehaviour
     /// </summary>
     private void Initialise()
     {
-        // 何も起動してないモードで起動
-        UseEyeTrackingEvent();
+        // ボイスコマンドモードで起動
+        UseVoiceCommandEvent();
     }
 
     /// <summary>
