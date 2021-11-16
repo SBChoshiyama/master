@@ -36,6 +36,12 @@ namespace MRTK_HKSample
         private LineRenderer rightLine = default;
 
         /// <summary>
+        /// 右手用の線オブジェクト(茎径モード時)
+        /// </summary>
+        [SerializeField]
+        private LineRenderer rightLine2 = default;
+
+        /// <summary>
         /// HandJointServiceインスタンス
         /// </summary>
         private IMixedRealityHandJointService handJointService = null;
@@ -75,6 +81,16 @@ namespace MRTK_HKSample
         /// </summary>
         private float rightrocal = 0.5F;
 
+        /// <summary>
+        /// 円の半径
+        /// </summary>
+        private float m_radius = 0;
+
+        /// <summary>
+        /// 円の線の太さ
+        /// </summary>
+        private float m_lineWidth = 0.002f;
+
         private void Start()
         {
             handJointService = CoreServices.GetInputSystemDataProvider<IMixedRealityHandJointService>();
@@ -112,6 +128,9 @@ namespace MRTK_HKSample
             rightLine.SetPosition(0, Vector3.zero);
             rightLine.SetPosition(1, Vector3.zero);
             rightDistanceText.text = "0 cm";
+
+            rightLine2.SetPosition(0, Vector3.zero);
+            rightLine2.SetPosition(1, Vector3.zero);
         }
 
         private void Update()
@@ -172,14 +191,35 @@ namespace MRTK_HKSample
                 return;
             }
 
-            // 線を描画
-            rightLine.SetPosition(0, rightIndexTip.position);
-            rightLine.SetPosition(1, rightThumbTip.position);
-            rightLine.startWidth = 0.001f;
-            rightLine.endWidth = 0.001f;
-
             // 距離を算出
             var rightDistance = Vector3.Distance(rightIndexTip.position, rightThumbTip.position);
+
+            // パブリック変数に保存
+            switch (stemModeSelector.InnerStemMode)
+            {
+                // 茎長モード
+                case StemModeSelector.StemMode.Length:
+                    // 線を描画
+                    rightLine.positionCount = 2;
+                    rightLine.SetPosition(0, rightIndexTip.position);
+                    rightLine.SetPosition(1, rightThumbTip.position);
+                    rightLine.startWidth = 0.001f;
+                    rightLine.endWidth = 0.001f;
+                    rightLine.loop = false;
+
+                    rightLine2.enabled = false;
+                    break;
+
+                // 茎径モード
+                // 1辺での茎径モード
+                case StemModeSelector.StemMode.SingleDiameter:
+                case StemModeSelector.StemMode.Diameter:
+                    // 円を描画
+                    DrawCircle();
+                    // 距離を円の直径に変更
+                    rightDistance = rightDistance / 5;
+                    break;
+            }
 
             // cmに変換
             rightDistance = rightDistance * 100;
@@ -192,22 +232,86 @@ namespace MRTK_HKSample
                 case StemModeSelector.StemMode.Length:
                 case StemModeSelector.StemMode.Diameter:
                     measuringToolSelector.LineDistance = rightDistance;
+                    rightrocal -= distanceTime;
+                    if (rightrocal <= 0)
+                    {
+                        rightDistanceText.text = rightDistance.ToString("0.0") + " cm";
+                        rightrocal = 0.5F;
+                    }
+
+                    rightDistanceText.transform.position = (rightIndexTip.position + rightThumbTip.position) / 2;
                     break;
 
                 // 1辺での茎径モード
                 case StemModeSelector.StemMode.SingleDiameter:
                     measuringToolSelector.LineDistance = (float)(rightDistance * 3.14);
+                    rightrocal -= distanceTime;
+                    if (rightrocal <= 0)
+                    {
+                        rightDistanceText.text = rightDistance.ToString("0.0") + " cm";
+                        rightrocal = 0.5F;
+                    }
+                    // 距離表示は人差し指寄りに(重なるとマーカが見えにくいため)
+                    rightDistanceText.transform.position = rightIndexTip.position;
                     break;
             }
+        }
 
-            rightrocal -= distanceTime;
-            if (rightrocal <= 0)
+        /// <summary>
+        /// 円形マーカー描画
+        /// </summary>
+        private void DrawCircle()
+        {
+            var segments = 360;
+
+            // 右手 人差し指
+            var rightIndexTip = handJointService.RequestJointTransform(TrackedHandJoint.IndexTip, Handedness.Right);
+            if (rightIndexTip == null)
             {
-                rightDistanceText.text = rightDistance.ToString("0.0") + " cm";
-                rightrocal = 0.5F;
+                Debug.Log("rightIndexTip is null.");
+                return;
             }
 
-            rightDistanceText.transform.position = (rightIndexTip.position + rightThumbTip.position) / 2;
+            // 右手 親指
+            var rightThumbTip = handJointService.RequestJointTransform(TrackedHandJoint.ThumbTip, Handedness.Right);
+            if (rightThumbTip == null)
+            {
+                Debug.Log("rightThumbTip is null.");
+                return;
+            }
+
+            // 距離を算出
+            var rightDistance = Vector3.Distance(rightIndexTip.position, rightThumbTip.position);
+            m_radius = rightDistance / 2;
+
+            // 中心点の算出
+            Vector3 center = (rightIndexTip.position + rightThumbTip.position) * 0.5f;
+
+            rightLine.startWidth = m_lineWidth;
+            rightLine.endWidth = m_lineWidth;
+            rightLine.positionCount = segments;
+            rightLine.loop = true;
+
+            rightLine2.startWidth = m_lineWidth;
+            rightLine2.endWidth = m_lineWidth;
+            rightLine2.positionCount = segments;
+            rightLine2.loop = true;
+            rightLine2.enabled = true;
+
+            var points = new Vector3[segments * 2];
+            var points2 = new Vector3[segments * 2];
+
+            for (int i = 0; i < segments; i++)
+            {
+                float rad = Mathf.Deg2Rad * (i * 360f / segments);
+                float x = Mathf.Sin(rad) * m_radius;
+                float y = Mathf.Cos(rad) * m_radius;
+                points[i] = new Vector3(center.x + x / 5, center.y, center.z - y / 5);
+                points2[i] = new Vector3(center.x + x / 5, center.y, center.z + y / 5);
+            }
+
+            rightLine.SetPositions(points);
+            rightLine2.SetPositions(points2);
         }
     }
 }
