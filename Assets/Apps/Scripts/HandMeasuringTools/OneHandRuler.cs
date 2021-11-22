@@ -75,6 +75,11 @@ namespace MRTK_HKSample
         /// </summary>
         private float rightrocal = 0.5F;
 
+        /// <summary>
+        /// 指位置と計測点の離間距離(cm)
+        /// </summary>
+        private float ReleaseLen = 2f;
+
         private void Start()
         {
             handJointService = CoreServices.GetInputSystemDataProvider<IMixedRealityHandJointService>();
@@ -116,6 +121,8 @@ namespace MRTK_HKSample
 
         private void Update()
         {
+            ////////////////////////////////////////////////////////////
+            ///左手
             // 左手 人差し指
             var leftIndexTip = handJointService.RequestJointTransform(TrackedHandJoint.IndexTip, Handedness.Left);
             if (leftIndexTip == null)
@@ -134,17 +141,49 @@ namespace MRTK_HKSample
 
             var distanceTime = Time.deltaTime;
 
-            // 線を描画
-            leftLine.SetPosition(0, leftIndexTip.position);
-            leftLine.SetPosition(1, leftThumbTip.position);
-            leftLine.startWidth = 0.001f;
-            leftLine.endWidth = 0.001f;
-
             // 距離を算出
             var leftDistance = Vector3.Distance(leftIndexTip.position, leftThumbTip.position);
 
             // cmに変換
             leftDistance = leftDistance * 100;
+
+            // パブリック変数に保存
+            switch (stemModeSelector.InnerStemMode)
+            {
+                // 茎長モード
+                case StemModeSelector.StemMode.Length:
+                    // 線を描画
+                    leftLine.SetPosition(0, leftIndexTip.position);
+                    leftLine.SetPosition(1, leftThumbTip.position);
+                    leftLine.startWidth = 0.001f;
+                    leftLine.endWidth = 0.001f;
+                    break;
+
+                // 茎径モード
+                // 1辺での茎径モード
+                case StemModeSelector.StemMode.SingleDiameter:
+                case StemModeSelector.StemMode.Diameter:
+                    // 間隔が(離間距離×2)cmよりも大きいか
+                    if (leftDistance > (ReleaseLen * 2))
+                    {
+                        var point = leftDistance - ReleaseLen;
+
+                        Vector3 p1 = (leftIndexTip.position * (leftDistance - point) + leftThumbTip.position * point) / leftDistance;
+                        Vector3 p2 = (leftIndexTip.position * point + leftThumbTip.position * (leftDistance - point)) / leftDistance;
+                        // 距離を太線の長さに変更
+                        leftLine.startWidth = 0.002f;
+                        leftLine.endWidth = 0.002f;
+                        leftLine.SetPosition(0, p1);
+                        leftLine.SetPosition(1, p2);
+
+                        leftDistance -= (ReleaseLen * 2);
+                    }
+                    else
+                    {
+                        leftDistance = 0;
+                    }
+                    break;
+            }
 
             leftrocal -= distanceTime;
             if (leftrocal <= 0)
@@ -154,8 +193,12 @@ namespace MRTK_HKSample
             }
 
             leftDistanceText.text = leftDistance.ToString("0.0") + " cm";
-            leftDistanceText.transform.position = (leftIndexTip.position + leftThumbTip.position) / 2;
+            var ltextPos = (leftIndexTip.position + leftThumbTip.position) / 2;
+            ltextPos.y += 0.05f;
+            leftDistanceText.transform.position = ltextPos;
 
+            ////////////////////////////////////////////////////////////
+            ///右手
             // 右手 人差し指
             var rightIndexTip = handJointService.RequestJointTransform(TrackedHandJoint.IndexTip, Handedness.Right);
             if (rightIndexTip == null)
@@ -172,17 +215,51 @@ namespace MRTK_HKSample
                 return;
             }
 
-            // 線を描画
-            rightLine.SetPosition(0, rightIndexTip.position);
-            rightLine.SetPosition(1, rightThumbTip.position);
-            rightLine.startWidth = 0.001f;
-            rightLine.endWidth = 0.001f;
-
             // 距離を算出
             var rightDistance = Vector3.Distance(rightIndexTip.position, rightThumbTip.position);
 
             // cmに変換
             rightDistance = rightDistance * 100;
+
+            // パブリック変数に保存
+            switch (stemModeSelector.InnerStemMode)
+            {
+                // 茎長モード
+                case StemModeSelector.StemMode.Length:
+                    // 線を描画
+                    rightLine.SetPosition(0, rightIndexTip.position);
+                    rightLine.SetPosition(1, rightThumbTip.position);
+                    rightLine.startWidth = 0.001f;
+                    rightLine.endWidth = 0.001f;
+                    break;
+
+                // 茎径モード
+                // 1辺での茎径モード
+                case StemModeSelector.StemMode.SingleDiameter:
+                case StemModeSelector.StemMode.Diameter:
+                    // 間隔が(離間距離×2)cmよりも大きいか
+                    if (rightDistance > (ReleaseLen * 2))
+                    {
+                        var point = rightDistance - ReleaseLen;
+
+                        Vector3 p1 = (rightIndexTip.position * (rightDistance - point) + rightThumbTip.position * point) / rightDistance;
+                        Vector3 p2 = (rightIndexTip.position * point + rightThumbTip.position * (rightDistance - point)) / rightDistance;
+                        // 距離を太線の長さに変更
+                        rightLine.enabled = true;
+                        rightLine.startWidth = 0.002f;
+                        rightLine.endWidth = 0.002f;
+                        rightLine.SetPosition(0, p1);
+                        rightLine.SetPosition(1, p2);
+
+                        rightDistance -= (ReleaseLen * 2);
+                    }
+                    else
+                    {
+                        rightLine.enabled = false;
+                        rightDistance = 0;
+                    }
+                    break;
+            }
 
             // パブリック変数に保存
             switch (stemModeSelector.InnerStemMode)
@@ -207,7 +284,9 @@ namespace MRTK_HKSample
                 rightrocal = 0.5F;
             }
 
-            rightDistanceText.transform.position = (rightIndexTip.position + rightThumbTip.position) / 2;
+            var rtextPos = (rightIndexTip.position + rightThumbTip.position) / 2;
+            rtextPos.y += 0.05f;
+            rightDistanceText.transform.position = rtextPos;
         }
     }
 }
