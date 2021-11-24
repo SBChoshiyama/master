@@ -15,6 +15,16 @@ namespace HKT
         public float LineDistance;
 
         /// <summary>
+        /// 測定モード
+        /// </summary>
+        public int MeasurTool;
+
+        /// <summary>
+        /// 測定線中間化
+        /// </summary>
+        public bool MeasurMiddle;
+
+        /// <summary>
         /// MeasuringToolモード
         /// </summary>
         public enum MeasuringTool
@@ -32,7 +42,17 @@ namespace HKT
             /// <summary>
             /// 両手親指測定
             /// </summary>
-            TwoHandsRulerThumbTip
+            TwoHandsRulerThumbTip,
+
+            /// <summary>
+            /// 片手測定
+            /// </summary>
+            OneHandRulerMiddle,
+
+            /// <summary>
+            /// 両手人差し指測定
+            /// </summary>
+            TwoHandsRulerMiddle
         }
 
         [SerializeField]
@@ -50,7 +70,10 @@ namespace HKT
         private void Initialise()
         {
             // 片手モードで起動
-            UseOneHandRuler();
+            MeasurTool = (int)MeasuringTool.OneHandRuler;
+            // 測定線の初期化
+            MeasurMiddle = false;
+            MeasurToolChange();
         }
 
         /// <summary>
@@ -58,11 +81,9 @@ namespace HKT
         /// </summary>
         public void UseOneHandRuler()
         {
-            foreach (var tool in tools)
-            {
-                tool.SetActive(false);
-            }
-            tools[(int)MeasuringTool.OneHandRuler].SetActive(true);
+            // 片手測定
+            MeasurTool = (int)MeasuringTool.OneHandRuler;
+            MeasurToolChange();
         }
 
         /// <summary>
@@ -70,11 +91,9 @@ namespace HKT
         /// </summary>
         public void UseTwoHandsRuler()
         {
-            foreach (var tool in tools)
-            {
-                tool.SetActive(false);
-            }
-            tools[(int)MeasuringTool.TwoHandsRuler].SetActive(true);
+            // 両手人差し指測定
+            MeasurTool = (int)MeasuringTool.TwoHandsRuler;
+            MeasurToolChange();
         }
 
         /// <summary>
@@ -82,11 +101,59 @@ namespace HKT
         /// </summary>
         public void UseHandProtractor()
         {
+            // 両手親指測定
+            MeasurTool = (int)MeasuringTool.TwoHandsRulerThumbTip;
+            MeasurToolChange();
+        }
+        /// <summary>
+        /// 中間測定モード切替
+        /// </summary>
+        public void MeasurMiddleModeToggle()
+        {
+            // 中間測定モード トグル
+            MeasurMiddle = !MeasurMiddle;
+            MeasurToolChange();
+        }
+
+        /// <summary>
+        /// 測定ツール切替
+        /// </summary>
+        public void MeasurToolChange()
+        {
             foreach (var tool in tools)
             {
                 tool.SetActive(false);
             }
-            tools[(int)MeasuringTool.TwoHandsRulerThumbTip].SetActive(true);
+            switch(MeasurTool)
+            {
+                /// 片手測定
+                case (int)MeasuringTool.OneHandRuler:
+                default:
+                    if (MeasurMiddle)
+                    {
+                        tools[(int)MeasuringTool.OneHandRulerMiddle].SetActive(true);
+                    }
+                    else
+                    {
+                        tools[MeasurTool].SetActive(true);
+                    }
+                    break;
+                /// 両手人差し指測定
+                case (int)MeasuringTool.TwoHandsRuler:
+                    if (MeasurMiddle)
+                    {
+                        tools[(int)MeasuringTool.TwoHandsRulerMiddle].SetActive(true);
+                    }
+                    else
+                    {
+                        tools[MeasurTool].SetActive(true);
+                    }
+                    break;
+                /// 両手親指測定
+                case (int)MeasuringTool.TwoHandsRulerThumbTip:
+                    tools[MeasurTool].SetActive(true);
+                    break;
+            }
         }
     }
 }
