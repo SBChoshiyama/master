@@ -68,7 +68,7 @@ public class PhotoCapture : MonoBehaviour
 
         // PhotoCapture オブジェクトを作成します
         // オブジェクトを表示させたい場合は、先頭のbool引数をtrueに変更してください
-        UnityEngine.Windows.WebCam.PhotoCapture.CreateAsync(true, delegate (UnityEngine.Windows.WebCam.PhotoCapture captureObject)
+        UnityEngine.Windows.WebCam.PhotoCapture.CreateAsync(false, delegate (UnityEngine.Windows.WebCam.PhotoCapture captureObject)
         {
             photoCaptureObject = captureObject;
             UnityEngine.Windows.WebCam.CameraParameters cameraParameters = new UnityEngine.Windows.WebCam.CameraParameters();
