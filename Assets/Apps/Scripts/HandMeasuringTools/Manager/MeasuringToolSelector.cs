@@ -10,6 +10,16 @@ namespace HKT
     public class MeasuringToolSelector : MonoBehaviour
     {
         /// <summary>
+        /// 線描画制御用GameObject
+        /// </summary>
+        private GameObject LineManagerObj;
+
+        /// <summary>
+        /// 線描画制御用スクリプトObject
+        /// </summary>
+        private RulerLineManager LineManager;
+
+        /// <summary>
         /// 測定結果
         /// </summary>
         public float LineDistance;
@@ -61,6 +71,9 @@ namespace HKT
         // Start is called before the first frame update
         private void Start()
         {
+            LineManagerObj = GameObject.Find("RulerLineManager");
+            LineManager = LineManagerObj.GetComponent<RulerLineManager>();
+
             Initialise();
         }
 
@@ -69,8 +82,8 @@ namespace HKT
         /// </summary>
         private void Initialise()
         {
-            // 片手モードで起動
-            MeasurTool = (int)MeasuringTool.OneHandRuler;
+            // 両手人差し指モードで起動
+            MeasurTool = (int)MeasuringTool.TwoHandsRuler;
             // 測定線の初期化
             MeasurMiddle = false;
             MeasurToolChange();
@@ -124,7 +137,9 @@ namespace HKT
             {
                 tool.SetActive(false);
             }
-            switch(MeasurTool)
+            // 線描画初期化
+            LineManager.RulerLineInit();
+            switch (MeasurTool)
             {
                 /// 片手測定
                 case (int)MeasuringTool.OneHandRuler:

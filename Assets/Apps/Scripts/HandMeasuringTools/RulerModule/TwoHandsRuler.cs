@@ -1,4 +1,4 @@
-using HKT;
+ï»¿using HKT;
 using Microsoft.MixedReality.Toolkit;
 using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.Utilities;
@@ -7,62 +7,60 @@ using UnityEngine;
 namespace MRTK_HKSample
 {
     /// <summary>
-    /// ƒnƒ“ƒh’è‹K
-    /// Ql“®‰æFhttps://twitter.com/hi_rom_/status/1267100537578639363
+    /// ãƒãƒ³ãƒ‰å®šè¦
+    /// å‚è€ƒå‹•ç”»ï¼šhttps://twitter.com/hi_rom_/status/1267100537578639363
     /// </summary>
-    public class TwoHandsRulerMiddle : MonoBehaviour
+    public class TwoHandsRuler : MonoBehaviour
     {
         /// <summary>
-        /// ’·‚³•\¦ƒeƒLƒXƒg
-        /// </summary>
-        [SerializeField]
-        private TextMesh DistanceText = default;
-
-        /// <summary>
-        /// ü‚ÌƒIƒuƒWƒFƒNƒg
-        /// </summary>
-        [SerializeField]
-        private LineRenderer line = default;
-
-        /// <summary>
-        /// HandJointServiceƒCƒ“ƒXƒ^ƒ“ƒX
+        /// HandJointServiceã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹
         /// </summary>
         private IMixedRealityHandJointService handJointService = null;
 
         /// <summary>
-        /// DataProviderAccessƒCƒ“ƒXƒ^ƒ“ƒX
+        /// DataProviderAccessã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹
         /// </summary>
         private IMixedRealityDataProviderAccess dataProviderAccess = null;
 
         /// <summary>
-        /// ‘ª’èƒ‚[ƒh‘I‘ğ—pGameObject
+        /// æ¸¬å®šãƒ¢ãƒ¼ãƒ‰é¸æŠç”¨GameObject
         /// </summary>
         private GameObject MeasuingToolSelectorObj;
 
         /// <summary>
-        /// ‘ª’èƒ‚[ƒh‘I‘ğ—pƒXƒNƒŠƒvƒgObject
+        /// æ¸¬å®šãƒ¢ãƒ¼ãƒ‰é¸æŠç”¨ã‚¹ã‚¯ãƒªãƒ—ãƒˆObject
         /// </summary>
         private MeasuringToolSelector measuringToolSelector;
 
         /// <summary>
-        /// Œsƒ‚[ƒh‘I‘ğ—pGameObject
+        /// èŒãƒ¢ãƒ¼ãƒ‰é¸æŠç”¨GameObject
         /// </summary>
         private GameObject StemModeSelectorObj;
 
         /// <summary>
-        /// Œsƒ‚[ƒh‘I‘ğ—pƒXƒNƒŠƒvƒgObject
+        /// èŒãƒ¢ãƒ¼ãƒ‰é¸æŠç”¨ã‚¹ã‚¯ãƒªãƒ—ãƒˆObject
         /// </summary>
         private StemModeSelector stemModeSelector;
 
         /// <summary>
-        /// ’·‚³‚Ì‘ª’èŠÔŠu
+        /// ç·šæç”»åˆ¶å¾¡ç”¨GameObject
         /// </summary>
-        float RocalTime = 0.5F;
+        private GameObject LineManagerObj;
 
         /// <summary>
-        /// wˆÊ’u‚ÆŒv‘ª“_‚Ì—£ŠÔ‹——£(cm)
+        /// ç·šæç”»åˆ¶å¾¡ç”¨ã‚¹ã‚¯ãƒªãƒ—ãƒˆObject
         /// </summary>
-        private float ReleaseLen = 2f;
+        private RulerLineManager LineManager;
+
+        /// <summary>
+        /// è·é›¢è¡¨ç¤ºç”¨ãƒ†ã‚­ã‚¹ãƒˆ
+        /// </summary>
+        private string RulerText;
+
+        /// <summary>
+        /// é•·ã•ã®æ¸¬å®šé–“éš”
+        /// </summary>
+        float RocalTime = 0.5F;
 
         void Start()
         {
@@ -80,7 +78,7 @@ namespace MRTK_HKSample
                 return;
             }
 
-            // ƒnƒ“ƒhƒŒƒC‚ğ”ñ•\¦‚É‚·‚é
+            // ãƒãƒ³ãƒ‰ãƒ¬ã‚¤ã‚’éè¡¨ç¤ºã«ã™ã‚‹
             //PointerUtils.SetHandRayPointerBehavior(PointerBehavior.AlwaysOff);
 
             MeasuingToolSelectorObj = GameObject.Find("MeasuringToolSelector");
@@ -89,19 +87,20 @@ namespace MRTK_HKSample
             StemModeSelectorObj = GameObject.Find("StemModeSelector");
             stemModeSelector = StemModeSelectorObj.GetComponent<StemModeSelector>();
 
+            LineManagerObj = GameObject.Find("RulerLineManager");
+            LineManager = LineManagerObj.GetComponent<RulerLineManager>();
+
             Initialize();
         }
 
         public void Initialize()
         {
-            line.SetPosition(0, Vector3.zero);
-            line.SetPosition(1, Vector3.zero);
-            DistanceText.text = "0 cm";
+            LineManager.RulerLineInit();
         }
 
         void Update()
         {
-            // ¶è
+            // å·¦æ‰‹
             var leftIndexTip = handJointService.RequestJointTransform(TrackedHandJoint.IndexTip, Handedness.Left);
             if (leftIndexTip == null)
             {
@@ -109,7 +108,7 @@ namespace MRTK_HKSample
                 return;
             }
 
-            // ‰Eè
+            // å³æ‰‹
             var rightIndexTip = handJointService.RequestJointTransform(TrackedHandJoint.IndexTip, Handedness.Right);
             if (rightIndexTip == null)
             {
@@ -117,62 +116,22 @@ namespace MRTK_HKSample
                 return;
             }
 
-            // ‹——£‚ğZo
+            // è·é›¢ã‚’ç®—å‡º
             var distance = Vector3.Distance(leftIndexTip.position, rightIndexTip.position);
-            // cm‚É•ÏŠ·
+            // cmã«å¤‰æ›
             distance = distance * 100;
 
-            // ƒpƒuƒŠƒbƒN•Ï”‚É•Û‘¶
+            // ãƒ‘ãƒ–ãƒªãƒƒã‚¯å¤‰æ•°ã«ä¿å­˜
             switch (stemModeSelector.InnerStemMode)
             {
-                // Œs’·ƒ‚[ƒh
-                case StemModeSelector.StemMode.Length:
-                    // ü‚ğ•`‰æ
-                    line.SetPosition(0, leftIndexTip.position);
-                    line.SetPosition(1, rightIndexTip.position);
-                    line.startWidth = 0.001f;
-                    line.endWidth = 0.001f;
-                    break;
-
-                // ŒsŒaƒ‚[ƒh
-                // 1•Ó‚Å‚ÌŒsŒaƒ‚[ƒh
-                case StemModeSelector.StemMode.SingleDiameter:
-                case StemModeSelector.StemMode.Diameter:
-                    // ŠÔŠu‚ª(—£ŠÔ‹——£~2)cm‚æ‚è‚à‘å‚«‚¢‚©
-                    if (distance > (ReleaseLen * 2))
-                    {
-                        var point = distance - ReleaseLen;
-
-                        Vector3 p1 = (rightIndexTip.position * (distance - point) + leftIndexTip.position * point) / distance;
-                        Vector3 p2 = (rightIndexTip.position * point + leftIndexTip.position * (distance - point)) / distance;
-                        // ‹——£‚ğ‘¾ü‚Ì’·‚³‚É•ÏX
-                        line.enabled = true;
-                        line.startWidth = 0.002f;
-                        line.endWidth = 0.002f;
-                        line.SetPosition(0, p1);
-                        line.SetPosition(1, p2);
-
-                        distance -= (ReleaseLen * 2);
-                    }
-                    else
-                    {
-                        line.enabled = false;
-                        distance = 0;
-                    }
-                    break;
-            }
-
-            // ƒpƒuƒŠƒbƒN•Ï”‚É•Û‘¶
-            switch (stemModeSelector.InnerStemMode)
-            {
-                // Œs’·ƒ‚[ƒh
-                // ŒsŒaƒ‚[ƒh
+                // èŒé•·ãƒ¢ãƒ¼ãƒ‰
+                // èŒå¾„ãƒ¢ãƒ¼ãƒ‰
                 case StemModeSelector.StemMode.Length:
                 case StemModeSelector.StemMode.Diameter:
                     measuringToolSelector.LineDistance = distance;
                     break;
 
-                // 1•Ó‚Å‚ÌŒsŒaƒ‚[ƒh
+                // 1è¾ºã§ã®èŒå¾„ãƒ¢ãƒ¼ãƒ‰
                 case StemModeSelector.StemMode.SingleDiameter:
                     measuringToolSelector.LineDistance = (float)(distance * 3.14);
                     break;
@@ -181,13 +140,12 @@ namespace MRTK_HKSample
             RocalTime -= Time.deltaTime;
             if (RocalTime <= 0)
             {
-                DistanceText.text = distance.ToString("0.0") + " cm";
+                RulerText = distance.ToString("0.0") + " cm";
                 RocalTime = 0.5F;
             }
 
-            var textPos = (leftIndexTip.position + rightIndexTip.position) / 2;
-            textPos.y += 0.05f;
-            DistanceText.transform.position = textPos;
+            // ç·šã‚’æç”»
+            LineManager.RulerLineDraw(leftIndexTip.position, rightIndexTip.position, RulerText);
         }
     }
 }

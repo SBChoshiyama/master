@@ -12,30 +12,6 @@ namespace MRTK_HKSample
     public class OneHandRulerMiddle : MonoBehaviour
     {
         /// <summary>
-        /// 左手の長さ表示テキスト
-        /// </summary>
-        [SerializeField]
-        private TextMesh leftDistanceText = default;
-
-        /// <summary>
-        /// 右手の長さ表示テキスト
-        /// </summary>
-        [SerializeField]
-        private TextMesh rightDistanceText = default;
-
-        /// <summary>
-        /// 左手用の線オブジェクト
-        /// </summary>
-        [SerializeField]
-        private LineRenderer leftLine = default;
-
-        /// <summary>
-        /// 右手用の線オブジェクト
-        /// </summary>
-        [SerializeField]
-        private LineRenderer rightLine = default;
-
-        /// <summary>
         /// HandJointServiceインスタンス
         /// </summary>
         private IMixedRealityHandJointService handJointService = null;
@@ -64,6 +40,26 @@ namespace MRTK_HKSample
         /// 茎モード選択用スクリプトObject
         /// </summary>
         private StemModeSelector stemModeSelector;
+
+        /// <summary>
+        /// 線描画制御用GameObject
+        /// </summary>
+        private GameObject LineManagerObj;
+
+        /// <summary>
+        /// 線描画制御用スクリプトObject
+        /// </summary>
+        private RulerLineManager LineManager;
+
+        /// <summary>
+        /// 左手距離表示用テキスト
+        /// </summary>
+        private string LeftRulerText;
+
+        /// <summary>
+        /// 右手距離表示用テキスト
+        /// </summary>
+        private string RightRulerText;
 
         /// <summary>
         /// 左手用の長さの測定間隔
@@ -105,18 +101,15 @@ namespace MRTK_HKSample
             StemModeSelectorObj = GameObject.Find("StemModeSelector");
             stemModeSelector = StemModeSelectorObj.GetComponent<StemModeSelector>();
 
+            LineManagerObj = GameObject.Find("RulerLineManager");
+            LineManager = LineManagerObj.GetComponent<RulerLineManager>();
+
             Initialize();
         }
 
         public void Initialize()
         {
-            leftLine.SetPosition(0, Vector3.zero);
-            leftLine.SetPosition(1, Vector3.zero);
-            leftDistanceText.text = "0 cm";
-
-            rightLine.SetPosition(0, Vector3.zero);
-            rightLine.SetPosition(1, Vector3.zero);
-            rightDistanceText.text = "0 cm";
+            LineManager.RulerLineInit();
         }
 
         private void Update()
@@ -147,16 +140,13 @@ namespace MRTK_HKSample
             // cmに変換
             leftDistance = leftDistance * 100;
 
+            Vector3 p1 = leftIndexTip.position;
+            Vector3 p2 = leftThumbTip.position;
             // パブリック変数に保存
             switch (stemModeSelector.InnerStemMode)
             {
                 // 茎長モード
                 case StemModeSelector.StemMode.Length:
-                    // 線を描画
-                    leftLine.SetPosition(0, leftIndexTip.position);
-                    leftLine.SetPosition(1, leftThumbTip.position);
-                    leftLine.startWidth = 0.001f;
-                    leftLine.endWidth = 0.001f;
                     break;
 
                 // 茎径モード
@@ -168,18 +158,15 @@ namespace MRTK_HKSample
                     {
                         var point = leftDistance - ReleaseLen;
 
-                        Vector3 p1 = (leftIndexTip.position * (leftDistance - point) + leftThumbTip.position * point) / leftDistance;
-                        Vector3 p2 = (leftIndexTip.position * point + leftThumbTip.position * (leftDistance - point)) / leftDistance;
-                        // 距離を太線の長さに変更
-                        leftLine.startWidth = 0.002f;
-                        leftLine.endWidth = 0.002f;
-                        leftLine.SetPosition(0, p1);
-                        leftLine.SetPosition(1, p2);
+                        p1 = (leftIndexTip.position * (leftDistance - point) + leftThumbTip.position * point) / leftDistance;
+                        p2 = (leftIndexTip.position * point + leftThumbTip.position * (leftDistance - point)) / leftDistance;
 
                         leftDistance -= (ReleaseLen * 2);
                     }
                     else
                     {
+                        p1 = (leftIndexTip.position + leftThumbTip.position) / 2;
+                        p2 = (leftIndexTip.position + leftThumbTip.position) / 2;
                         leftDistance = 0;
                     }
                     break;
@@ -188,14 +175,11 @@ namespace MRTK_HKSample
             leftrocal -= distanceTime;
             if (leftrocal <= 0)
             {
-                leftDistanceText.text = leftDistance.ToString("0.0") + " cm";
+                LeftRulerText = leftDistance.ToString("0.0") + " cm";
                 leftrocal = 0.5F;
             }
-
-            leftDistanceText.text = leftDistance.ToString("0.0") + " cm";
-            var ltextPos = (leftIndexTip.position + leftThumbTip.position) / 2;
-            ltextPos.y += 0.05f;
-            leftDistanceText.transform.position = ltextPos;
+            // 左手用計測線を描画
+            LineManager.RulerLineLeftDraw(p1, p2, LeftRulerText);
 
             ////////////////////////////////////////////////////////////
             ///右手
@@ -221,16 +205,14 @@ namespace MRTK_HKSample
             // cmに変換
             rightDistance = rightDistance * 100;
 
+
+            p1 = rightIndexTip.position;
+            p2 = rightThumbTip.position;
             // パブリック変数に保存
             switch (stemModeSelector.InnerStemMode)
             {
                 // 茎長モード
                 case StemModeSelector.StemMode.Length:
-                    // 線を描画
-                    rightLine.SetPosition(0, rightIndexTip.position);
-                    rightLine.SetPosition(1, rightThumbTip.position);
-                    rightLine.startWidth = 0.001f;
-                    rightLine.endWidth = 0.001f;
                     break;
 
                 // 茎径モード
@@ -242,20 +224,14 @@ namespace MRTK_HKSample
                     {
                         var point = rightDistance - ReleaseLen;
 
-                        Vector3 p1 = (rightIndexTip.position * (rightDistance - point) + rightThumbTip.position * point) / rightDistance;
-                        Vector3 p2 = (rightIndexTip.position * point + rightThumbTip.position * (rightDistance - point)) / rightDistance;
-                        // 距離を太線の長さに変更
-                        rightLine.enabled = true;
-                        rightLine.startWidth = 0.002f;
-                        rightLine.endWidth = 0.002f;
-                        rightLine.SetPosition(0, p1);
-                        rightLine.SetPosition(1, p2);
-
+                        p1 = (rightIndexTip.position * (rightDistance - point) + rightThumbTip.position * point) / rightDistance;
+                        p2 = (rightIndexTip.position * point + rightThumbTip.position * (rightDistance - point)) / rightDistance;
                         rightDistance -= (ReleaseLen * 2);
                     }
                     else
                     {
-                        rightLine.enabled = false;
+                        p1 = (rightIndexTip.position + rightThumbTip.position) / 2;
+                        p2 = (rightIndexTip.position + rightThumbTip.position) / 2;
                         rightDistance = 0;
                     }
                     break;
@@ -280,13 +256,11 @@ namespace MRTK_HKSample
             rightrocal -= distanceTime;
             if (rightrocal <= 0)
             {
-                rightDistanceText.text = rightDistance.ToString("0.0") + " cm";
+                RightRulerText = rightDistance.ToString("0.0") + " cm";
                 rightrocal = 0.5F;
             }
-
-            var rtextPos = (rightIndexTip.position + rightThumbTip.position) / 2;
-            rtextPos.y += 0.05f;
-            rightDistanceText.transform.position = rtextPos;
+            // 計測線を描画
+            LineManager.RulerLineDraw(p1, p2, RightRulerText);
         }
     }
 }
