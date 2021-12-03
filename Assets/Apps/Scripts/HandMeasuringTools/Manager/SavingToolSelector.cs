@@ -19,9 +19,14 @@ public class SavingToolSelector : MonoBehaviour
         VoiceCommand,
 
         /// <summary>
-        /// アイトラッキング
+        /// 写真撮影
         /// </summary>
-        EyeTracking
+        PhotoCapture,
+
+        /// <summary>
+        /// クロスポインター
+        /// </summary>
+        Cross
     }
 
     [SerializeField]
@@ -67,14 +72,15 @@ public class SavingToolSelector : MonoBehaviour
     }
 
     /// <summary>
-    /// アイトラッキングモードのオブジェクト表示処理
+    /// 写真撮影モードのオブジェクト表示処理
     /// </summary>
-    public void UseEyeTrackingEvent()
+    public void UsePhotoCaptureEvent()
     {
         foreach (var tool in tools)
         {
             tool.SetActive(false);
         }
-        //tools[(int)SavingTools.EyeTracking].SetActive(true);
+        tools[(int)SavingTools.PhotoCapture].SetActive(true);
+        tools[(int)SavingTools.Cross].SetActive(true);
     }
 }
