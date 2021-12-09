@@ -62,7 +62,12 @@ namespace HKT
             /// <summary>
             /// 両手人差し指測定
             /// </summary>
-            TwoHandsRulerMiddle
+            TwoHandsRulerMiddle,
+ 
+                /// <summary>
+            /// 手測定OFF
+            /// </summary>
+            HandRulerNone
         }
 
         [SerializeField]
@@ -110,6 +115,16 @@ namespace HKT
         }
 
         /// <summary>
+        /// 手測定OFFモードのオブジェクト表示処理
+        /// </summary>
+        public void UseHandRulerOFF()
+        {
+            // 両手人差し指測定
+            MeasurTool = (int)MeasuringTool.HandRulerNone;
+            MeasurToolChange();
+        }
+
+        /// <summary>
         /// 両手親指測定モードのオブジェクト表示処理
         /// </summary>
         public void UseHandProtractor()
@@ -125,6 +140,16 @@ namespace HKT
         {
             // 中間測定モード トグル
             MeasurMiddle = !MeasurMiddle;
+            MeasurToolChange();
+        }
+
+        /// <summary>
+        /// 中間測定モード有効
+        /// </summary>
+        public void MeasurMiddleModeOn()
+        {
+            // 中間測定モード トグル
+            MeasurMiddle = true;
             MeasurToolChange();
         }
 
@@ -168,7 +193,22 @@ namespace HKT
                 case (int)MeasuringTool.TwoHandsRulerThumbTip:
                     tools[MeasurTool].SetActive(true);
                     break;
+                ///  手測定OFF
+                case (int)MeasuringTool.HandRulerNone:
+                    break;
             }
+        }
+
+        /// <summary>
+        /// 片手モードか確認
+        /// </summary>
+        public bool isUseOneHands()
+        {
+            if( MeasurTool == (int)MeasuringTool.OneHandRuler)
+            {
+                return true;
+            }
+            return false;
         }
     }
 }
