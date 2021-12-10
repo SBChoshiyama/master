@@ -17,6 +17,16 @@ public class VoiceCommand : MonoBehaviour
     /// </summary>
     private StemModeSelector stemModeSelector;
 
+    /// <summary>
+    /// ハンドモニターGameObject
+    /// </summary>
+    private GameObject HandMonitorObj;
+
+    /// <summary>
+    /// ハンドモニターObject
+    /// </summary>
+    private HandMonitor HandMonitor;
+
     [SerializeField]
     private TextMesh DistanceText = default;
 
@@ -28,6 +38,10 @@ public class VoiceCommand : MonoBehaviour
     // Start is called before the first frame update
     private void Start()
     {
+        // ハンドモニターオブジェクト
+        HandMonitorObj = GameObject.Find("HandMonitor");
+        HandMonitor = HandMonitorObj.GetComponent<HandMonitor>();
+
         MeasuringToolSelectorObj = GameObject.Find("MeasuringToolSelector");
         measuringToolSelector = MeasuringToolSelectorObj.GetComponent<MeasuringToolSelector>();
 
@@ -47,15 +61,22 @@ public class VoiceCommand : MonoBehaviour
     {
         var dis = measuringToolSelector.LineDistance;
 
-        if (stemModeSelector.InnerStemMode == StemModeSelector.StemMode.Diameter)
+        if (HandMonitor.isHandTracking())
         {
-            // 計算処理実施
-            CheckStemDiameter(dis);
+            if (stemModeSelector.InnerStemMode == StemModeSelector.StemMode.Diameter)
+            {
+                // 計算処理実施
+                CheckStemDiameter(dis);
+            }
+            else
+            {
+                // メッセージ表示処理
+                ShowDistanceText(dis);
+            }
         }
         else
         {
-            // メッセージ表示処理
-            ShowDistanceText(dis);
+            DistanceText.text = "エラー:手の検出失敗";
         }
     }
 

@@ -59,6 +59,21 @@ public class HandMonitor : MonoBehaviour
     /// </summary>
     private bool isHandTrack;
 
+    /// <summary>
+    ///  右手の検出用カウンタ
+    /// </summary>
+    private int RightHandCnt;
+
+    /// <summary>
+    ///  左手の検出用カウンタ
+    /// </summary>
+    private int LeftHandCnt;
+
+    /// <summary>
+    ///  何回検出で有効とするか
+    /// </summary>
+    private int CNTMAX = 10;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -94,19 +109,41 @@ public class HandMonitor : MonoBehaviour
         HandStatusNGObj.SetActive(true);
         HandStatusTxt.text = "";
         isHandTrack = false;
+
+        RightHandCnt = CNTMAX;
+        LeftHandCnt = CNTMAX;
     }
 
     // Update is called once per frame
     void Update()
     {
-        //var rightIndexTip = handJointService.RequestJointTransform(TrackedHandJoint.IndexTip, Handedness.Right);
-        // (rightIndexTip.position.y > -0.2))
-            
-        // 写真撮影モード
+        // 手の検出判定処理
+        // 右手検出チェック
+        if (handJointService.IsHandTracked(Handedness.Right))
+        {
+            if (RightHandCnt > 0)
+                RightHandCnt--;
+        }
+        else
+        {
+            RightHandCnt = CNTMAX;
+        }
+        // 左検出チェック
+        if (handJointService.IsHandTracked(Handedness.Left))
+        {
+            if (LeftHandCnt > 0)
+                LeftHandCnt--;
+        }
+        else
+        {
+            LeftHandCnt = CNTMAX;
+        }
+
+        // モード別に有効な手をチェック
+        // 写真撮影モード(右手か左手を検知していればOK)
         if (SaveMode.isPhotoCapture())
         {
-            if (!handJointService.IsHandTracked(Handedness.Right) &&
-                !handJointService.IsHandTracked(Handedness.Left))
+            if (!isRightHandFind() && !isLeftHandFind())
             {
                 HandStatusTxt.text = "右手・左手";
                 HandStatusOKObj.SetActive(false);
@@ -116,10 +153,10 @@ public class HandMonitor : MonoBehaviour
             }
 
         }
-        // 片手モード
+        // 片手モード(右手を検知していればOK)
         else if (MeasuringTool.isUseOneHands())
         {
-            if (!handJointService.IsHandTracked(Handedness.Right))
+            if (!isRightHandFind())
             {
                 HandStatusTxt.text = "右手";
                 HandStatusOKObj.SetActive(false);
@@ -128,11 +165,10 @@ public class HandMonitor : MonoBehaviour
                 return;
             }
         }
-        // 両手モード
+        // 両手モード(右手・左手ともに検知していればOK)
         else
         {
-            if (!handJointService.IsHandTracked(Handedness.Right) &&
-                !handJointService.IsHandTracked(Handedness.Left))
+            if (!isRightHandFind() && !isLeftHandFind())
             {
                 HandStatusTxt.text = "右手・左手";
                 HandStatusOKObj.SetActive(false);
@@ -140,7 +176,7 @@ public class HandMonitor : MonoBehaviour
                 isHandTrack = false;
                 return;
             }
-            else if (!handJointService.IsHandTracked(Handedness.Right))
+            else if (!isRightHandFind())
             {
                 HandStatusTxt.text = "右手";
                 HandStatusOKObj.SetActive(false);
@@ -148,7 +184,7 @@ public class HandMonitor : MonoBehaviour
                 isHandTrack = false;
                 return;
             }
-            else if (!handJointService.IsHandTracked(Handedness.Left))
+            else if (!isLeftHandFind())
             {
                 HandStatusTxt.text = "左手";
                 HandStatusOKObj.SetActive(false);
@@ -164,10 +200,39 @@ public class HandMonitor : MonoBehaviour
     }
 
     /// <summary>
+    ///  右手検出
+    /// </summary>
+    private bool isRightHandFind()
+    {
+        if (RightHandCnt == 0)
+            return true;
+        return false;
+    }
+
+    /// <summary>
+    ///  左手検出
+    /// </summary>
+    private bool isLeftHandFind()
+    {
+        if (LeftHandCnt == 0)
+            return true;
+        return false;
+    }
+
+    /// <summary>
     ///  手の検出
     /// </summary>
     public bool isHandTracking()
     {
         return isHandTrack;
+    }
+    /// <summary>
+    ///  左手の検出
+    /// </summary>
+    public bool isLeftHandTracking()
+    {
+        if (isLeftHandFind())
+            return true;
+        return false;
     }
 }

@@ -45,6 +45,12 @@ public class SettingMenuController : MonoBehaviour
     /// </summary>
     private SavingToolSelector SaveMode;
 
+    /// <summary>
+    ///  Distanceテキスト
+    /// </summary>
+    [SerializeField]
+    private TextMesh DistanceText = default;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -66,6 +72,7 @@ public class SettingMenuController : MonoBehaviour
         SaveModeObj = GameObject.Find("SavingToolSelector");
         SaveMode = SaveModeObj.GetComponent<SavingToolSelector>();
 
+        DistanceText.text = "茎長計測(両手)";
         // 設定メニューは最初は非表示に設定
         SettingMenuObj.SetActive(false);
     }
@@ -99,6 +106,7 @@ public class SettingMenuController : MonoBehaviour
         StemMode.UseStemLength();
         MeasuringTool.UseOneHandRuler();
         SaveMode.UseVoiceCommandEvent();
+        DistanceText.text = "茎長計測(片手)";
     }
 
     /// <summary>
@@ -109,6 +117,7 @@ public class SettingMenuController : MonoBehaviour
         StemMode.UseStemLength();
         MeasuringTool.UseTwoHandsRuler();
         SaveMode.UseVoiceCommandEvent();
+        DistanceText.text = "茎長計測(両手)";
     }
 
     /// <summary>
@@ -120,6 +129,7 @@ public class SettingMenuController : MonoBehaviour
         MeasuringTool.UseTwoHandsRuler();
         MeasuringTool.MeasurMiddleModeOn();
         SaveMode.UseVoiceCommandEvent();
+        DistanceText.text = "茎径計測(両手)";
     }
 
     /// <summary>
@@ -129,6 +139,7 @@ public class SettingMenuController : MonoBehaviour
     {
         MeasuringTool.UseHandRulerOFF();
         SaveMode.UsePhotoCaptureEvent();
+        DistanceText.text = "茎径計測(画像解析)";
     }
 
 }
