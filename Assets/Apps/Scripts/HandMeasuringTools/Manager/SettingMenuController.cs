@@ -1,6 +1,9 @@
 using HKT;
 using System.Collections;
 using System.Collections.Generic;
+using Microsoft.MixedReality.Toolkit;
+using Microsoft.MixedReality.Toolkit.Input;
+using Microsoft.MixedReality.Toolkit.Utilities;
 using UnityEngine;
 
 public class SettingMenuController : MonoBehaviour
@@ -54,6 +57,11 @@ public class SettingMenuController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // ハンドレイを非表示にする
+        PointerUtils.SetHandRayPointerBehavior(PointerBehavior.AlwaysOff);
+        // ハンドレイを非表示にする
+        PointerUtils.SetHandRayPointerBehavior(PointerBehavior.AlwaysOff);
+
         // 設定メニューオブジェクト
         SettingMenuObj = GameObject.Find("SettingMenuPanel");
 
@@ -88,9 +96,10 @@ public class SettingMenuController : MonoBehaviour
     /// </summary>
     public void SettingMenuDisplay()
     {
+        // アンカー座標・角度を取得
         var pos = SettingMenuAnchorObj.transform.position;
         var rot = SettingMenuAnchorObj.transform.rotation;
-        Debug.Log("rot:" + rot);
+
         //　設定メニューの表示位置は開始ボタン押下時のアンカー位置とする
         SettingMenuObj.transform.SetPositionAndRotation(pos, rot);
 

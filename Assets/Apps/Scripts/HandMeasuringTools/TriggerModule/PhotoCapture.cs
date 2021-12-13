@@ -71,7 +71,7 @@ public class PhotoCapture : MonoBehaviour
             }
             else
             {
-                Debug.Log("画像解析によるの距離測定開始");
+                Debug.Log("画像解析による距離測定開始");
                 DistanceText.text = "0";
                 IsTimer = false;
                 rocal = totalTime;
@@ -150,14 +150,27 @@ public class PhotoCapture : MonoBehaviour
     {
         WWWForm form = new WWWForm();
         form.AddBinaryData("file", bodyData, "image.png", "image/png");
+        Debug.Log("URLの設定");
 
         UnityWebRequest webRequest = UnityWebRequest.Post(URL, form);
+        Debug.Log("接続完了");
 
         //URLに接続して結果が戻ってくるまで待機
         yield return webRequest.SendWebRequest();
 
+        if (webRequest.isHttpError)
+        {
+            // レスポンスコードを見て処理
+            Debug.Log($"[Error]Response Code : {webRequest.responseCode}");
+        }
+        else if (webRequest.isNetworkError)
+        {
+            // エラーメッセージを見て処理
+            Debug.Log($"[Error]Message : {webRequest.error}");
+        }
+
         //エラーが出ていないかチェック
-        if (webRequest.result != UnityWebRequest.Result.Success)
+            if (webRequest.result != UnityWebRequest.Result.Success)
         {
             //通信失敗
             Debug.Log(webRequest.error);

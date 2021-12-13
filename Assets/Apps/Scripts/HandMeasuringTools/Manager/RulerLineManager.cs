@@ -50,10 +50,6 @@ public class RulerLineManager : MonoBehaviour
         HandMonitor = HandMonitorObj.GetComponent<HandMonitor>();
 
         RulerLineInit();
-        // ハンドレイを非表示にする
-        PointerUtils.SetHandRayPointerBehavior(PointerBehavior.AlwaysOff);
-        // ハンドレイを非表示にする
-        PointerUtils.SetHandRayPointerBehavior(PointerBehavior.AlwaysOff);
     }
 
 

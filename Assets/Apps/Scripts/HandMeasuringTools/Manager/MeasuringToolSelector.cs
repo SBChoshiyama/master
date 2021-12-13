@@ -87,11 +87,10 @@ namespace HKT
         /// </summary>
         private void Initialise()
         {
-            // 両手人差し指モードで起動
-            MeasurTool = (int)MeasuringTool.TwoHandsRuler;
             // 測定線の初期化
             MeasurMiddle = false;
-            MeasurToolChange();
+            // 両手人差し指モードで起動
+            UseTwoHandsRuler();
         }
 
         /// <summary>
