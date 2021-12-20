@@ -1,6 +1,11 @@
 using HKT;
 using System;
+using System.Collections;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Networking;
+using UnityEngine.Windows.WebCam;
+using static SavingToolSelector;
 
 public class VoiceCommand : MonoBehaviour
 {
@@ -44,6 +49,33 @@ public class VoiceCommand : MonoBehaviour
     /// </summary>
     private RulerLineManager MeasureControl;
 
+    /// <summary>
+    /// 確定トリガー選択GameObject
+    /// </summary>
+    private GameObject SavingToolSelectorObj;
+
+    /// <summary>
+    /// 確定トリガー選択スクリプトObject
+    /// </summary>
+    private SavingToolSelector savingToolSelector;
+
+    /// <summary>
+    /// PhotoCapture オブジェクト
+    /// </summary>
+    UnityEngine.Windows.WebCam.PhotoCapture photoCaptureObject = null;
+
+    /// <summary>
+    /// 画像変換用テクスチャオブジェクト
+    /// </summary>
+    Texture2D targetTexture = null;
+
+    /// <summary>
+    /// 接続先URL
+    /// </summary>
+    /// <remarks>最終的な外部API化するときに正式なURLを設定してください。</remarks>
+    private const string URL = "http://xxx.xxx.x.xxx:xxxx/";
+
+
     [SerializeField]
     private TextMesh DistanceText = default;
 
@@ -74,7 +106,11 @@ public class VoiceCommand : MonoBehaviour
         // 計測コントローラオブジェクト
         MeasureControlObj = GameObject.Find("RulerLineManager");
         MeasureControl = StemModeSelectorObj.GetComponent<RulerLineManager>();
-        
+
+        // Saveモードコントローラオブジェクト
+        SavingToolSelectorObj = GameObject.Find("SavingToolSelector");
+        savingToolSelector = SavingToolSelectorObj.GetComponent<SavingToolSelector>();
+
         locallength = 0;
         localdiameter = 0;
     }
@@ -91,22 +127,32 @@ public class VoiceCommand : MonoBehaviour
     {
         var dis = measuringToolSelector.LineDistance;
 
-        if (HandMonitor.isHandTracking())
+        // 画像撮影モードの場合
+        if (savingToolSelector.savingtoolSel == SavingTools.PhotoCapture)
         {
-            if (stemModeSelector.InnerStemMode == StemModeSelector.StemMode.Diameter)
-            {
-                // 計算処理実施
-                CheckStemDiameter(dis);
-            }
-            else
-            {
-                // メッセージ表示処理
-                ShowDistanceText(dis);
-            }
+            // 撮影イベント実施
+            PhotoCaptureEvent();
         }
         else
         {
-            DistanceText.text = "エラー:手の検出失敗";
+
+            if (HandMonitor.isHandTracking())
+            {
+                if (stemModeSelector.InnerStemMode == StemModeSelector.StemMode.Diameter)
+                {
+                    // 計算処理実施
+                    CheckStemDiameter(dis);
+                }
+                else
+                {
+                    // メッセージ表示処理
+                    ShowDistanceText(dis);
+                }
+            }
+            else
+            {
+                DistanceText.text = "エラー:手の検出失敗";
+            }
         }
     }
 
@@ -192,6 +238,114 @@ public class VoiceCommand : MonoBehaviour
             IsOneSelectDiameter = false;
         }
     }
+
+    /// <summary>
+    /// 撮影イベント処理
+    /// </summary>
+    /// <remarks>GameObjectのInputActionHandlerイベントにAirTapメソッドを設定してください。</remarks>
+    public void PhotoCaptureEvent()
+    {
+        Resolution cameraResolution = UnityEngine.Windows.WebCam.PhotoCapture.SupportedResolutions.OrderByDescending((res) => res.width * res.height).First();
+        targetTexture = new Texture2D(cameraResolution.width, cameraResolution.height);
+
+        // PhotoCapture オブジェクトを作成します
+        // オブジェクトを表示させたい場合は、先頭のbool引数をtrueに変更してください
+        UnityEngine.Windows.WebCam.PhotoCapture.CreateAsync(false, delegate (UnityEngine.Windows.WebCam.PhotoCapture captureObject)
+        {
+            photoCaptureObject = captureObject;
+            UnityEngine.Windows.WebCam.CameraParameters cameraParameters = new UnityEngine.Windows.WebCam.CameraParameters();
+
+            // オブジェクトを表示させたい場合は不透明度を変更してください(0.9fくらいから調整)
+            cameraParameters.hologramOpacity = 0.9f;
+            cameraParameters.cameraResolutionWidth = cameraResolution.width;
+            cameraParameters.cameraResolutionHeight = cameraResolution.height;
+            cameraParameters.pixelFormat = UnityEngine.Windows.WebCam.CapturePixelFormat.BGRA32;
+
+            string filename = string.Format(@"CapturedImage{0}_n.jpg", Time.time);
+            string filePath = System.IO.Path.Combine(Application.persistentDataPath, filename);
+
+            // カメラをアクティベートします
+            photoCaptureObject.StartPhotoModeAsync(cameraParameters, delegate (UnityEngine.Windows.WebCam.PhotoCapture.PhotoCaptureResult result)
+            {
+                // 写真を撮ります
+                photoCaptureObject.TakePhotoAsync(OnCapturedPhotoToMemory);
+            });
+        });
+    }
+
+    /// <summary>
+    /// 写真保存処理
+    /// </summary>
+    /// <param name="result">処理結果</param>
+    /// <param name="photoCaptureFrame">画像データ</param>
+    void OnCapturedPhotoToMemory(UnityEngine.Windows.WebCam.PhotoCapture.PhotoCaptureResult result, PhotoCaptureFrame photoCaptureFrame)
+    {
+        // ターゲットテクスチャに RAW 画像データをコピーします
+        photoCaptureFrame.UploadImageDataToTexture(targetTexture);
+        byte[] bodyData = targetTexture.EncodeToJPG();
+
+        StartCoroutine(OnPostSend(bodyData));
+
+        // カメラを非アクティブにします
+        Debug.Log("Saved Photo to disk!");
+        photoCaptureObject.StopPhotoModeAsync(OnStoppedPhotoMode);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="bodyData">画像バイナリデータ</param>
+    /// <returns>処理結果</returns>
+    private IEnumerator OnPostSend(byte[] bodyData)
+    {
+        WWWForm form = new WWWForm();
+        form.AddBinaryData("file", bodyData, "image.png", "image/png");
+        Debug.Log("URLの設定");
+
+        UnityWebRequest webRequest = UnityWebRequest.Post(URL, form);
+        Debug.Log("接続完了");
+
+        //URLに接続して結果が戻ってくるまで待機
+        yield return webRequest.SendWebRequest();
+
+        if (webRequest.isHttpError)
+        {
+            // レスポンスコードを見て処理
+            Debug.Log($"[Error]Response Code : {webRequest.responseCode}");
+        }
+        else if (webRequest.isNetworkError)
+        {
+            // エラーメッセージを見て処理
+            Debug.Log($"[Error]Message : {webRequest.error}");
+        }
+
+        //エラーが出ていないかチェック
+        if (webRequest.result != UnityWebRequest.Result.Success)
+        {
+            //通信失敗
+            Debug.Log(webRequest.error);
+            DistanceText.text = "処理に失敗しました";
+        }
+        else
+        {
+            //通信成功
+            Debug.Log("post" + " : " + webRequest.downloadHandler.text);
+            var diameter = float.Parse(webRequest.downloadHandler.text);
+            ShowDistanceText(diameter);
+        }
+    }
+
+    /// <summary>
+    /// 後処理
+    /// </summary>
+    /// <param name="result">処理結果</param>
+    void OnStoppedPhotoMode(UnityEngine.Windows.WebCam.PhotoCapture.PhotoCaptureResult result)
+    {
+        // PhotoCapture オブジェクトを解放します。
+        photoCaptureObject.Dispose();
+        photoCaptureObject = null;
+    }
+
 
     /// <summary>
     /// 音声トリガー検知

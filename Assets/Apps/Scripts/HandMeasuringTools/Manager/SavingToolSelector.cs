@@ -32,7 +32,10 @@ public class SavingToolSelector : MonoBehaviour
     [SerializeField]
     private List<GameObject> tools = new List<GameObject>();
 
-    private int savingtoolSel;
+    /// <summary>
+    /// SaveÉÇÅ[Éh
+    /// </summary>
+    public SavingTools savingtoolSel;
 
     // Start is called before the first frame update
     private void Start()
@@ -59,7 +62,7 @@ public class SavingToolSelector : MonoBehaviour
             tool.SetActive(false);
         }
         tools[(int)SavingTools.Timer].SetActive(true);
-        savingtoolSel = (int)SavingTools.Timer;
+        savingtoolSel = SavingTools.Timer;
     }
 
     /// <summary>
@@ -72,7 +75,7 @@ public class SavingToolSelector : MonoBehaviour
             tool.SetActive(false);
         }
         tools[(int)SavingTools.VoiceCommand].SetActive(true);
-        savingtoolSel = (int)SavingTools.VoiceCommand;
+        savingtoolSel = SavingTools.VoiceCommand;
     }
 
     /// <summary>
@@ -86,7 +89,7 @@ public class SavingToolSelector : MonoBehaviour
         }
         tools[(int)SavingTools.PhotoCapture].SetActive(true);
         tools[(int)SavingTools.Cross].SetActive(true);
-        savingtoolSel = (int)SavingTools.PhotoCapture;
+        savingtoolSel = SavingTools.PhotoCapture;
     }
 
     /// <summary>
@@ -94,7 +97,7 @@ public class SavingToolSelector : MonoBehaviour
     /// </summary>
     public bool isPhotoCapture()
     {
-        if(savingtoolSel == (int)SavingTools.PhotoCapture)
+        if(savingtoolSel == SavingTools.PhotoCapture)
         {
             return true;
         }
