@@ -105,13 +105,8 @@ public class HandMonitor : MonoBehaviour
         SaveModeObj = GameObject.Find("SavingToolSelector");
         SaveMode = SaveModeObj.GetComponent<SavingToolSelector>();
 
-        HandStatusOKObj.SetActive(false);
-        HandStatusNGObj.SetActive(true);
-        HandStatusTxt.text = "";
-        isHandTrack = false;
-
-        RightHandCnt = CNTMAX;
-        LeftHandCnt = CNTMAX;
+        // 初期化
+        HandMonitorInit();
     }
 
     // Update is called once per frame
@@ -152,6 +147,15 @@ public class HandMonitor : MonoBehaviour
                 return;
             }
 
+        }
+        // 手測定OFFモード
+        else if (MeasuringTool.isUseHandRulerOFF())
+        {
+            HandStatusTxt.text = "";
+            HandStatusOKObj.SetActive(false);
+            HandStatusNGObj.SetActive(false);
+            isHandTrack = false;
+            return;
         }
         // 片手モード(右手を検知していればOK)
         else if (MeasuringTool.isUseOneHands())
@@ -197,6 +201,19 @@ public class HandMonitor : MonoBehaviour
         HandStatusOKObj.SetActive(true);
         HandStatusNGObj.SetActive(false);
         isHandTrack = true;
+    }
+    /// <summary>
+    ///  ハンドモニター初期化
+    /// </summary>
+    private void HandMonitorInit()
+    {
+        HandStatusOKObj.SetActive(false);
+        HandStatusNGObj.SetActive(false);
+        HandStatusTxt.text = "";
+        isHandTrack = false;
+
+        RightHandCnt = CNTMAX;
+        LeftHandCnt = CNTMAX;
     }
 
     /// <summary>

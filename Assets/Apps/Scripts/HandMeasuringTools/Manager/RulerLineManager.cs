@@ -41,7 +41,7 @@ public class RulerLineManager : MonoBehaviour
     /// </summary>
     [SerializeField]
     private LineRenderer RulerLineLeft = default;
-    
+
     // Start is called before the first frame update
     void Start()
     {

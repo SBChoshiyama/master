@@ -79,7 +79,7 @@ namespace HKT
             LineManagerObj = GameObject.Find("RulerLineManager");
             LineManager = LineManagerObj.GetComponent<RulerLineManager>();
 
-            Initialise();
+            //Initialise();
         }
 
         /// <summary>
@@ -89,8 +89,8 @@ namespace HKT
         {
             // 測定線の初期化
             MeasurMiddle = false;
-            // 両手人差し指モードで起動
-            UseTwoHandsRuler();
+            // 手測定OFFモードで起動
+            UseHandRulerOFF();
         }
 
         /// <summary>
@@ -204,6 +204,18 @@ namespace HKT
         public bool isUseOneHands()
         {
             if( MeasurTool == (int)MeasuringTool.OneHandRuler)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 手測定OFFモードか確認
+        /// </summary>
+        public bool isUseHandRulerOFF()
+        {
+            if (MeasurTool == (int)MeasuringTool.HandRulerNone)
             {
                 return true;
             }

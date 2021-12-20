@@ -4,7 +4,14 @@ using UnityEngine;
 
 public class VoiceCommand : MonoBehaviour
 {
+    /// <summary>
+    /// 計測ツールセレクタGameObject
+    /// </summary>
     private GameObject MeasuringToolSelectorObj;
+
+    /// <summary>
+    /// 計測ツールセレクタGameObject
+    /// </summary>
     private MeasuringToolSelector measuringToolSelector;
 
     /// <summary>
@@ -27,6 +34,16 @@ public class VoiceCommand : MonoBehaviour
     /// </summary>
     private HandMonitor HandMonitor;
 
+    /// <summary>
+    /// 計測コントローラGameObject
+    /// </summary>
+    private GameObject MeasureControlObj;
+
+    /// <summary>
+    /// 計測コントローラObject
+    /// </summary>
+    private RulerLineManager MeasureControl;
+
     [SerializeField]
     private TextMesh DistanceText = default;
 
@@ -34,6 +51,10 @@ public class VoiceCommand : MonoBehaviour
     private float InnerDistance;
     private float LongDis;
     private float MinDis;
+    private bool VoiceTriggerOn = false;
+
+    private float locallength;
+    private float localdiameter;
 
     // Start is called before the first frame update
     private void Start()
@@ -42,11 +63,20 @@ public class VoiceCommand : MonoBehaviour
         HandMonitorObj = GameObject.Find("HandMonitor");
         HandMonitor = HandMonitorObj.GetComponent<HandMonitor>();
 
+        // 計測ツールセレクタオブジェクト
         MeasuringToolSelectorObj = GameObject.Find("MeasuringToolSelector");
         measuringToolSelector = MeasuringToolSelectorObj.GetComponent<MeasuringToolSelector>();
 
+        // 茎モード選択用オブジェクト
         StemModeSelectorObj = GameObject.Find("StemModeSelector");
         stemModeSelector = StemModeSelectorObj.GetComponent<StemModeSelector>();
+
+        // 計測コントローラオブジェクト
+        MeasureControlObj = GameObject.Find("RulerLineManager");
+        MeasureControl = StemModeSelectorObj.GetComponent<RulerLineManager>();
+        
+        locallength = 0;
+        localdiameter = 0;
     }
 
     // Update is called once per frame
@@ -102,11 +132,17 @@ public class VoiceCommand : MonoBehaviour
         {
             Debug.Log($"茎長の長さ = {dis}cm");
             DistanceText.text = "茎長の長さ = " + dis.ToString("0.0") + " cm";
+            // 茎長の設定
+            locallength = dis;
+            VoiceTriggerOn = true;
         }
         else
         {
             Debug.Log($"茎径の円周 = {dis}cm");
             DistanceText.text = "茎径の円周 = " + dis.ToString("0.0") + " cm";
+            // 茎径の設定完了
+            localdiameter = dis;
+            VoiceTriggerOn = true;
         }
     }
 
@@ -156,4 +192,40 @@ public class VoiceCommand : MonoBehaviour
             IsOneSelectDiameter = false;
         }
     }
+
+    /// <summary>
+    /// 音声トリガー検知
+    /// </summary>
+    public bool IsVoiceTriggerOn()
+    {
+        bool ret = VoiceTriggerOn;
+        VoiceTriggerOn = false;
+        return ret;
+    }
+
+    /// <summary>
+    /// 距離情報クリア
+    /// </summary>
+    public void clearDistance()
+    {
+        locallength = 0;
+        localdiameter = 0;
+    }
+
+    /// <summary>
+    /// 茎長取得
+    /// </summary>
+    public float getStemLength()
+    {
+        return locallength;
+    }
+
+    /// <summary>
+    /// 茎径取得
+    /// </summary>
+    public float getStemDiameter()
+    {
+        return localdiameter;
+    }
+
 }

@@ -5,7 +5,14 @@ using UnityEngine;
 
 public class TimerButton : MonoBehaviour
 {
+    /// <summary>
+    /// 計測ツールセレクタGameObject
+    /// </summary>
     GameObject MeasuringToolSelectorObj;
+
+    /// <summary>
+    /// 計測ツールセレクタGameObject
+    /// </summary>
     MeasuringToolSelector measuringToolSelector;
 
     [SerializeField]
@@ -57,6 +64,8 @@ public class TimerButton : MonoBehaviour
     {
         var dis = measuringToolSelector.LineDistance;
         Debug.Log($"茎長の長さ =  {dis}cm");
+
+        // 茎長の設定
         DistanceText.text = "茎長の長さ = " + dis.ToString("0.0") + " cm";
     }
 }
