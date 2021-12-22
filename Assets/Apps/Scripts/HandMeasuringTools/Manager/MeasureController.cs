@@ -10,6 +10,11 @@ using UnityEngine.UI;
 public class MeasureController : MonoBehaviour
 {
     /// <summary>
+    /// ハンドモニタ用GameObject
+    /// </summary>
+    private GameObject HandMonitorObj;
+
+    /// <summary>
     /// 設定メニューパネル用GameObject
     /// </summary>
     private GameObject SettingMenuObj;
@@ -70,6 +75,16 @@ public class MeasureController : MonoBehaviour
     private SavingToolSelector SaveMode;
 
     /// <summary>
+    /// 線描画制御用GameObject
+    /// </summary>
+    private GameObject LineManagerObj;
+
+    /// <summary>
+    /// 線描画制御用スクリプトObject
+    /// </summary>
+    private RulerLineManager LineManager;
+
+    /// <summary>
     ///  Distanceテキスト
     /// </summary>
     [SerializeField]
@@ -80,6 +95,12 @@ public class MeasureController : MonoBehaviour
     /// </summary>
     [SerializeField]
     private TextMesh PlantNoText = default;
+
+    /// <summary>
+    ///  記録窓PlantNoテキスト
+    /// </summary>
+    [SerializeField]
+    private TextMesh RecPlantNoText = default;
 
     /// <summary>
     ///  記録窓茎長テキスト
@@ -105,8 +126,12 @@ public class MeasureController : MonoBehaviour
     /// <summary>
     /// 記録表示ボタン用GameObject
     /// </summary>
-    private GameObject RecordBtnObj;
+    private GameObject DisplayResultBtnObj;
+
     /// <summary>
+    /// ReturnTopボタン用GameObject
+    /// </summary>
+    private GameObject ReturnTopBtnObj;
 
     /// <summary>
     /// Voice用GameObject
@@ -120,7 +145,7 @@ public class MeasureController : MonoBehaviour
     /// <summary>
     /// 記録表示用GameObject
     /// </summary>
-    private GameObject RecordSlateObj;
+    private GameObject MesuringResultSlateObj;
 
     /// <summary>
     /// LengthTwoHand GameObject
@@ -132,15 +157,28 @@ public class MeasureController : MonoBehaviour
     private InteractiveMeshCursor LengthTwoHand;
 
     /// <summary>
-    /// 初期化完了フラグ
+    /// 初期表示テキスト
     /// </summary>
-    private bool initflg = false;
+    private string DefaultText;
+
+    /// <summary>
+    /// 初期化フラグ
+    /// </summary>
+    private bool InitFlg = false;
+
+    /// <summary>
+    /// 起動初回のみ実行用
+    /// </summary>
+    private bool isFirstFlg = false;
 
     // Start is called before the first frame update
     void Start()
     {
         // ハンドレイを非表示にする
         PointerUtils.SetHandRayPointerBehavior(PointerBehavior.AlwaysOff);
+
+        // ハンドモニタGameObject
+        HandMonitorObj = GameObject.Find("HandStatus");
 
         // 苗番号オブジェクト
         PlantNoObj = GameObject.Find("PlantNoManager");
@@ -170,26 +208,44 @@ public class MeasureController : MonoBehaviour
         SaveModeObj = GameObject.Find("SavingToolSelector");
         SaveMode = SaveModeObj.GetComponent<SavingToolSelector>();
 
+        // 線描画オブジェクト
+        LineManagerObj = GameObject.Find("RulerLineManager");
+        LineManager = LineManagerObj.GetComponent<RulerLineManager>();
+
         // voice
         VoiceObj = GameObject.Find("VoiceCommand");
         Voice = VoiceObj.GetComponent<VoiceCommand>();
 
         // 記録表示用ボードオブジェクト
-        RecordSlateObj = GameObject.Find("RecordSlate");
+        MesuringResultSlateObj = GameObject.Find("MesuringResultSlate");
 
         // 記録表示ボタン用オブジェクト
-        RecordBtnObj = GameObject.Find("RecordButton");
+        DisplayResultBtnObj = GameObject.Find("DisplayResultButton");
 
-        // 記録表示ボタン用オブジェクト
-        LengthTwoHandObj = GameObject.Find("LengthTwoHands");
+        // ReturnTopボタン用オブジェクト
+        ReturnTopBtnObj = GameObject.Find("ReturnTopButton");
+        
+        // 初期表示用テキスト
+        DefaultText = "";
 
         MeasureInit();
+
+        // 初期化フラグset
+        InitFlg = true;
+
+        // 初回フラグset
+        isFirstFlg = true;
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        StemRecordButtonCheck();
+        // 音声検知があれば更新
+        if (Voice.IsVoiceTriggerOn())
+        {
+            MesuringResultButtonCheck();
+        }
     }
 
     /// <summary>
@@ -197,20 +253,27 @@ public class MeasureController : MonoBehaviour
     /// </summary>
     public void MeasureInit()
     {
-        // 計測無しモードで初期化
-        NoneSelect();
         // 設定メニューは最初は非表示に設定
         SettingMenuObj.SetActive(false);
         // 設定開始ボタン非表示
         SettingStartBtnObj.SetActive(false);
-        // 記録表示ボタン非表示
-        RecordBtnObj.SetActive(false);
         // 記録表示用ボード非表示
-        RecordSlateObj.SetActive(false);
+        MesuringResultSlateObj.SetActive(false);
+        // 記録表示ボタン非表示
+        DisplayResultBtnObj.SetActive(false);
+        // ReturnTopボタン非表示
+        ReturnTopBtnObj.SetActive(false);
         // ローカル変数クリア
         Voice.clearDistance();
-        // 初期化完了
-        initflg = true;
+
+        // 計測無しモードで起動
+        NoneSelect();
+
+        // まだ測定ツールは停止
+        MeasureStop();
+
+        // ハンドモニタ無効
+        HandMonitorObj.SetActive(false);
     }
 
     /// <summary>
@@ -218,14 +281,23 @@ public class MeasureController : MonoBehaviour
     /// </summary>
     public void SettingMenuEnable()
     {
-        // 茎長計測：両手モード選択で初期化
-        LengthTwoHandsSelect();
-        SaveMode = SaveModeObj.GetComponent<SavingToolSelector>();
-        // 設定メニューは最初は非表示に設定
-        //SettingMenuObj.SetActive(false);
+        // 初回限定処理
+        if (isFirstFlg)
+        {
+            // 茎長計測：両手モード選択で初期化
+            LengthTwoHandsSelect();
+            isFirstFlg = false;
+        }
+        // 測定ツールは設定
+        MeasuringTool.MeasurToolSet();
         // 設定開始ボタン表示
         SettingStartBtnObj.SetActive(true);
+        DistanceText.text = DefaultText;
         PlantNoText.text = "苗番号:" + PlantNo.GetPlantNo();
+        // ハンドモニタ有効
+        HandMonitorObj.SetActive(true);
+        // 記録表示ボタン表示チェック
+        MesuringResultButtonCheck();
     }
     /// <summary>
     /// 設定メニュー表示
@@ -248,13 +320,15 @@ public class MeasureController : MonoBehaviour
     /// </summary>
     public void LengthOneHandSelect()
     {
-        if (initflg)
+        // 初期化完了しないと処理しない
+        if (InitFlg)
         {
-            Debug.Log("dousite koko deru");
+            // 設定登録
             StemMode.UseStemLength();
             MeasuringTool.UseOneHandRuler();
             SaveMode.UseVoiceCommandEvent();
-            DistanceText.text = "茎長計測(片手)";
+            DefaultText = "茎長計測(片手)";
+            DistanceText.text = DefaultText;
         }
     }
 
@@ -263,12 +337,15 @@ public class MeasureController : MonoBehaviour
     /// </summary>
     public void LengthTwoHandsSelect()
     {
-        if (initflg)
+        // 初期化完了しないと処理しない
+        if (InitFlg)
         {
+            // 設定登録
             StemMode.UseStemLength();
             MeasuringTool.UseTwoHandsRuler();
             SaveMode.UseVoiceCommandEvent();
-            DistanceText.text = "茎長計測(両手)";
+            DefaultText = "茎長計測(両手)";
+            DistanceText.text = DefaultText;
         }
     }
 
@@ -277,13 +354,16 @@ public class MeasureController : MonoBehaviour
     /// </summary>
     public void DiameterTwoHandsSelect()
     {
-        if (initflg)
+        // 初期化完了しないと処理しない
+        if (InitFlg)
         {
+            // 設定登録
             StemMode.UseStemSimpleDiameter();
             MeasuringTool.UseTwoHandsRuler();
             MeasuringTool.MeasurMiddleModeOn();
             SaveMode.UseVoiceCommandEvent();
-            DistanceText.text = "茎径計測(両手)";
+            DefaultText = "茎径計測(両手)";
+            DistanceText.text = DefaultText;
         }
     }
 
@@ -292,11 +372,12 @@ public class MeasureController : MonoBehaviour
     /// </summary>
     public void DiameterGraphicSelect()
     {
-        if (initflg)
+        if (InitFlg)
         {
             MeasuringTool.UseHandRulerOFF();
             SaveMode.UsePhotoCaptureEvent();
-            DistanceText.text = "茎径計測(画像解析)";
+            DefaultText = "茎径計測(画像解析)";
+            DistanceText.text = DefaultText;
         }
     }
 
@@ -312,12 +393,22 @@ public class MeasureController : MonoBehaviour
     }
 
     /// <summary>
+    /// 計測停止(計測関係の表示をしたくないとき)
+    /// </summary>
+    public void MeasureStop()
+    {
+        DistanceText.text = "";
+        PlantNoText.text = "";
+        MeasuringTool.MeasurToolOff();
+    }
+
+    /// <summary>
     /// 茎長のセット
     /// </summary>
     public void SetStemLength(float data)
     {
         stemLength = data;
-        StemRecordButtonCheck();
+        MesuringResultButtonCheck();
         Debug.Log($"stemLength = {data}cm");
     }
 
@@ -328,46 +419,65 @@ public class MeasureController : MonoBehaviour
     {
         stemDiameter = data;
         Debug.Log($"stemDiameter = {data}cm");
-        StemRecordButtonCheck();
+        MesuringResultButtonCheck();
     }
 
     /// <summary>
-    /// 記録表示ボタン表示チェック
+    /// 計測結果表示ボタン表示チェック
     /// </summary>
-    public void StemRecordButtonCheck()
+    public void MesuringResultButtonCheck()
     {
-        if (Voice.IsVoiceTriggerOn())
+        stemLength = Voice.getStemLength();
+        stemDiameter = Voice.getStemDiameter();
+        Debug.Log($"stemLength = {stemLength}cm , stemDiameter = {stemDiameter}cm");
+        if ((stemLength > 0) && (stemDiameter > 0))
         {
-            stemLength = Voice.getStemLength();
-            stemDiameter = Voice.getStemDiameter();
-            Debug.Log($"stemLength = {stemLength}cm , stemDiameter = {stemDiameter}cm");
-            if ((stemLength > 0) && (stemDiameter > 0))
-            {
-                RecordBtnObj.SetActive(true);
-            }
+            // ReturnTopボタン非表示
+            ReturnTopBtnObj.SetActive(false);
+            // 記録表示ボタン表示
+            DisplayResultBtnObj.SetActive(true);
+        }
+        else
+        {
+            // 記録表示ボタン非表示
+            DisplayResultBtnObj.SetActive(false);
+            // ReturnTopボタン表示
+            ReturnTopBtnObj.SetActive(true);
         }
     }
 
     /// <summary>
     /// 記録結果表示
     /// </summary>
-    public void RecordResultDisplay()
+    public void MesuringResultDisplay()
     {
         // アンカー座標・角度を取得
         var pos = SettingMenuAnchorObj.transform.position;
         var rot = SettingMenuAnchorObj.transform.rotation;
 
+        RecPlantNoText.text = "苗番号:" + PlantNo.GetPlantNo();
         RecStemLengthText.text = "茎長：" + stemLength.ToString("0.0") + " cm";
         RecStemDiamText.text = "茎径：" + stemDiameter.ToString("0.0") + " cm";
         //　記録表示の表示位置は開始ボタン押下時のアンカー位置とする
-        RecordSlateObj.transform.SetPositionAndRotation(pos, rot);
+        MesuringResultSlateObj.transform.SetPositionAndRotation(pos, rot);
 
+        // 計測停止
+        MeasureStop();
+        
+        // 線描画消去
+        LineManager.RulerLineErase();
+
+        // ハンドモニタ無効
+        HandMonitorObj.SetActive(false);
+
+        // 設定開始ボタン非表示
+        SettingStartBtnObj.SetActive(false);
 
         // 記録表示ボタン非表示
-        RecordBtnObj.SetActive(false);
+        DisplayResultBtnObj.SetActive(false);
 
         // 記録表示用ボード表示
-        RecordSlateObj.SetActive(true);
+        MesuringResultSlateObj.SetActive(true);
     }
 
     /// <summary>
@@ -381,9 +491,10 @@ public class MeasureController : MonoBehaviour
         // 計測結果クリア
         stemLength = 0;
         stemDiameter = 0;
+        Voice.clearDistance();
 
-        // 初期化
-        MeasureInit();
+        // 記録表示用ボード非表示
+        MesuringResultSlateObj.SetActive(false);
 
         // 苗番号画面表示
         PlantNoPlateObj.SetActive(true);
@@ -397,9 +508,39 @@ public class MeasureController : MonoBehaviour
         // 計測結果クリア
         stemLength = 0;
         stemDiameter = 0;
+        Voice.clearDistance();
 
-        // 初期化
-        MeasureInit();
+        // 記録表示用ボード非表示
+        MesuringResultSlateObj.SetActive(false);
+
+        // 苗番号画面表示
+        PlantNoPlateObj.SetActive(true);
+    }
+
+    /// <summary>
+    /// 苗番号入力へ戻る(直接)
+    /// </summary>
+    public void DirectReturnKey()
+    {
+        // 計測結果クリア
+        stemLength = 0;
+        stemDiameter = 0;
+        Voice.clearDistance();
+
+        // 計測停止
+        MeasureStop();
+
+        // 線描画消去
+        LineManager.RulerLineErase();
+
+        // ハンドモニタ無効
+        HandMonitorObj.SetActive(false);
+
+        // 設定開始ボタン非表示
+        SettingStartBtnObj.SetActive(false);
+
+        // ReturnTopボタン非表示
+        ReturnTopBtnObj.SetActive(false);
 
         // 苗番号画面表示
         PlantNoPlateObj.SetActive(true);
@@ -410,7 +551,13 @@ public class MeasureController : MonoBehaviour
     /// </summary>
     public void RecordPlateCloseKey()
     {
+        // 設定開始ボタン表示
+        SettingStartBtnObj.SetActive(true);
+
         // 記録表示ボタン表示
-        RecordBtnObj.SetActive(true);
+        DisplayResultBtnObj.SetActive(true);
+
+        // 計測再開
+        SettingMenuEnable();
     }
 }

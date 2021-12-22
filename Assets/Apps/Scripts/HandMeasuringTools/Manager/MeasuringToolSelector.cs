@@ -100,7 +100,7 @@ namespace HKT
         {
             // 片手測定
             MeasurTool = (int)MeasuringTool.OneHandRuler;
-            MeasurToolChange();
+            MeasurToolSet();
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace HKT
         {
             // 両手人差し指測定
             MeasurTool = (int)MeasuringTool.TwoHandsRuler;
-            MeasurToolChange();
+            MeasurToolSet();
         }
 
         /// <summary>
@@ -118,9 +118,9 @@ namespace HKT
         /// </summary>
         public void UseHandRulerOFF()
         {
-            // 両手人差し指測定
+            // 手測定OFF
             MeasurTool = (int)MeasuringTool.HandRulerNone;
-            MeasurToolChange();
+            MeasurToolSet();
         }
 
         /// <summary>
@@ -130,7 +130,7 @@ namespace HKT
         {
             // 両手親指測定
             MeasurTool = (int)MeasuringTool.TwoHandsRulerThumbTip;
-            MeasurToolChange();
+            MeasurToolSet();
         }
         /// <summary>
         /// 中間測定モード切替
@@ -139,7 +139,7 @@ namespace HKT
         {
             // 中間測定モード トグル
             MeasurMiddle = !MeasurMiddle;
-            MeasurToolChange();
+            MeasurToolSet();
         }
 
         /// <summary>
@@ -149,13 +149,24 @@ namespace HKT
         {
             // 中間測定モード トグル
             MeasurMiddle = true;
-            MeasurToolChange();
+            MeasurToolSet();
+        }
+
+        /// <summary>
+        /// 測定ツール停止
+        /// </summary>
+        public void MeasurToolOff()
+        {
+            foreach (var tool in tools)
+            {
+                tool.SetActive(false);
+            }
         }
 
         /// <summary>
         /// 測定ツール切替
         /// </summary>
-        public void MeasurToolChange()
+         public void MeasurToolSet()
         {
             foreach (var tool in tools)
             {
