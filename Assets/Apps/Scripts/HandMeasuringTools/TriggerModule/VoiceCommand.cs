@@ -174,7 +174,8 @@ public class VoiceCommand : MonoBehaviour
     /// <param name="dis">•\¦‚·‚éŒv‘ªŒ‹‰Ê</param>
     private void ShowDistanceText(float dis)
     {
-        if(stemModeSelector.InnerStemMode == StemModeSelector.StemMode.Length)
+        if((stemModeSelector.InnerStemMode == StemModeSelector.StemMode.Length) &&
+            !savingToolSelector.isPhotoCapture())
         {
             Debug.Log($"Œs’·‚Ì’·‚³ = {dis}cm");
             DistanceText.text = "Œs’·‚Ì’·‚³ = " + dis.ToString("0.0") + " cm";
@@ -184,8 +185,8 @@ public class VoiceCommand : MonoBehaviour
         }
         else
         {
-            Debug.Log($"ŒsŒa‚Ì‰~ü = {dis}cm");
-            DistanceText.text = "ŒsŒa‚Ì‰~ü = " + dis.ToString("0.0") + " cm";
+            Debug.Log($"ŒsŒa‚Ì‰~ü = {dis}mm");
+            DistanceText.text = "ŒsŒa‚Ì‰~ü = " + dis.ToString("0") + " mm";
             // ŒsŒa‚Ìİ’èŠ®—¹
             localdiameter = dis;
             VoiceTriggerOn = true;
@@ -231,7 +232,8 @@ public class VoiceCommand : MonoBehaviour
             var c = 3 * b * b;
             var d = (float)(10 + Math.Sqrt(4 - c));
 
-            var total = a * (1 + (c / d));
+            // total‚Í‡o‚Åo—Í
+            var total = a * (1 + (c / d)) * 10;
 
             // ƒƒbƒZ[ƒW•\¦ˆ—
             ShowDistanceText(total);

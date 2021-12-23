@@ -79,6 +79,32 @@ public class SavingToolSelector : MonoBehaviour
     }
 
     /// <summary>
+    /// 音声関連のオブジェクト消去処理
+    /// </summary>
+    public void VoiceObjClear()
+    {
+        foreach (var tool in tools)
+        {
+            tool.SetActive(false);
+        }
+        tools[(int)SavingTools.Cross].SetActive(false);
+    }
+
+    /// <summary>
+    /// 音声関連のオブジェクト再表示
+    /// </summary>
+    public void VoiceObjRedisplay()
+    {
+        foreach (var tool in tools)
+        {
+            tool.SetActive(false);
+        }
+        tools[(int)SavingTools.VoiceCommand].SetActive(true);
+        if (isPhotoCapture())
+            tools[(int)SavingTools.Cross].SetActive(true);
+    }
+
+    /// <summary>
     /// 写真撮影モードのオブジェクト表示処理
     /// </summary>
     public void UsePhotoCaptureEvent()

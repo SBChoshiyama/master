@@ -4,6 +4,7 @@ using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.Utilities;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class TwoHandsRulerThumbTip : MonoBehaviour
 {
@@ -120,12 +121,14 @@ public class TwoHandsRulerThumbTip : MonoBehaviour
             // åsåaÉÇÅ[Éh
             case StemModeSelector.StemMode.Length:
             case StemModeSelector.StemMode.Diameter:
-                measuringToolSelector.LineDistance = distance;
+                // è¨êîì_1åÖÇ≈éléÃå‹ì¸
+                measuringToolSelector.LineDistance = ((float)Math.Round(distance * 10)) / 10;
                 break;
 
             // 1ï”Ç≈ÇÃåsåaÉÇÅ[Éh
             case StemModeSelector.StemMode.SingleDiameter:
-                measuringToolSelector.LineDistance = (float)(distance * 3.14);
+                // åsåaÇÕáoíPà Ç…ïœä∑(Å~10)
+                measuringToolSelector.LineDistance = (float)Math.Round((distance * 3.14 * 10), MidpointRounding.AwayFromZero);
                 break;
         }
 

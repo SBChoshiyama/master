@@ -3,6 +3,7 @@ using Microsoft.MixedReality.Toolkit;
 using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.Utilities;
 using UnityEngine;
+using System;
 
 namespace MRTK_HKSample
 {
@@ -168,12 +169,14 @@ namespace MRTK_HKSample
                 // 茎径モード
                 case StemModeSelector.StemMode.Length:
                 case StemModeSelector.StemMode.Diameter:
-                    measuringToolSelector.LineDistance = rightDistance;
+                    // 小数点1桁で四捨五入
+                    measuringToolSelector.LineDistance = ((float)Math.Round(rightDistance * 10))/10;
                     break;
 
                 // 1辺での茎径モード
                 case StemModeSelector.StemMode.SingleDiameter:
-                    measuringToolSelector.LineDistance = (float)(rightDistance * 3.14);
+                    // 茎径は㎜単位に変換(×10)
+                    measuringToolSelector.LineDistance = (float)Math.Round((rightDistance * 3.14 * 10), MidpointRounding.AwayFromZero);
                     break;
             }
 

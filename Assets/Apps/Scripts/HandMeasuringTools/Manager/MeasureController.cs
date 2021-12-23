@@ -294,6 +294,8 @@ public class MeasureController : MonoBehaviour
         SettingStartBtnObj.SetActive(true);
         DistanceText.text = DefaultText;
         PlantNoText.text = "苗番号:" + PlantNo.GetPlantNo();
+        // 音声関係のオブジェクト再表示
+        SaveMode.VoiceObjRedisplay();
         // ハンドモニタ有効
         HandMonitorObj.SetActive(true);
         // 記録表示ボタン表示チェック
@@ -457,7 +459,7 @@ public class MeasureController : MonoBehaviour
 
         RecPlantNoText.text = "苗番号:" + PlantNo.GetPlantNo();
         RecStemLengthText.text = "茎長：" + stemLength.ToString("0.0") + " cm";
-        RecStemDiamText.text = "茎径：" + stemDiameter.ToString("0.0") + " cm";
+        RecStemDiamText.text = "茎径：" + stemDiameter.ToString("0") + " mm";
         //　記録表示の表示位置は開始ボタン押下時のアンカー位置とする
         MesuringResultSlateObj.transform.SetPositionAndRotation(pos, rot);
 
@@ -475,6 +477,9 @@ public class MeasureController : MonoBehaviour
 
         // 記録表示ボタン非表示
         DisplayResultBtnObj.SetActive(false);
+
+        // 音声関係のオブジェクト消去
+        SaveMode.VoiceObjClear();
 
         // 記録表示用ボード表示
         MesuringResultSlateObj.SetActive(true);
@@ -538,6 +543,9 @@ public class MeasureController : MonoBehaviour
 
         // 設定開始ボタン非表示
         SettingStartBtnObj.SetActive(false);
+
+        // 音声関係のオブジェクト消去
+        SaveMode.VoiceObjClear();
 
         // ReturnTopボタン非表示
         ReturnTopBtnObj.SetActive(false);
